@@ -250,8 +250,8 @@ async function cargar() {
     const j = await r.json();
     if (j.resultado === 'ok' && j.reportes) {
       datos = j.reportes.map(r => ({
-        fecha:  String(r.Fecha||'').substring(0,10),
-        hora:   String(r.Hora||''),
+        fecha: (() => { const f = String(r.Fecha||''); if(f.includes('T')) { return f.split('T')[0]; } return f.substring(0,10); })(),
+        hora: (() => { const h = String(r.Hora||''); if(h.includes('T')) { return h.split('T')[1].substring(0,5); } return h.substring(0,5); })(),
         area:   String(r.Area||''),
         tipo:   String(r.Tipo||''),
         desc:   String(r.Descripcion||''),
@@ -456,7 +456,7 @@ function exportPDF() {
     </style>
   </head><body>
 <button onclick="window.close()" style="background:#1a472a;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:16px;">← Regresar al Dashboard</button>
-<h1>🌿 Reporte de Incidencias — Agrofrutos Trading S.A.</h1>    <h2>Generado por: ${user.nombre} | Fecha: ${fecha} | Total: ${datos.length} reportes</h2>
+<h1>🌿 Reporte de Incidencias — Agrofrutos Trading S.A.</h1>   <h2>Generado por: ${user.nombre} | Fecha: ${fecha} | Total: ${datos.length} reportes</h2>
     <div class="stats">
       <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r=>r.riesgo==='Alto').length}</div><div class="l">Alto</div></div>
       <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r=>r.riesgo==='Medio').length}</div><div class="l">Medio</div></div>
