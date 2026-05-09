@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enlaces de Acceso — Agrofrutos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+
+    header {
+      background: #1a472a;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: #2d6a4f;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 { font-size: 16px; font-weight: 600; }
+    header p  { font-size: 12px; opacity: 0.8; }
+    .btn-logout {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    nav {
+      background: #2d6a4f;
+      display: flex;
+      gap: 4px;
+      padding: 0 32px;
+    }
+    nav a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      padding: 12px 20px;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: white;
+      border-bottom-color: #74c69d;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .page-header {
+      padding: 24px 32px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-header h2 { font-size: 20px; font-weight: 600; color: #1a472a; }
+    .page-header p  { font-size: 13px; color: #718096; margin-top: 2px; }
+
+    .info-banner {
+      margin: 0 32px 20px;
+      background: #e8f5e9;
+      border: 1px solid #c6f6d5;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #276749;
+      line-height: 1.6;
+    }
+
+    .buscar {
+      margin: 0 32px 20px;
+    }
+    .buscar input {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      font-family: 'Segoe UI', sans-serif;
+      background: white;
+    }
+    .buscar input:focus { border-color: #2d6a4f; }
+
+    .areas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 0 32px 40px;
+    }
+
+    .area-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .area-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+    .card-header {
+      background: #1a472a;
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      font-size: 22px;
+      min-width: 32px;
+      text-align: center;
+    }
+    .card-header h3 { font-size: 14px; font-weight: 600; }
+    .card-header p  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    .card-body { padding: 16px; }
+
+    .qr-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .qr-wrap > div {
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      background: white;
+    }
+
+    .enlace-box {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #4a5568;
+      word-break: break-all;
+      margin-bottom: 12px;
+      font-family: monospace;
+    }
+
+    .card-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-copiar, .btn-abrir {
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      transition: opacity 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .btn-copiar {
+      background: #e8f5e9;
+      color: #1a472a;
+      border: 1px solid #c6f6d5;
+    }
+    .btn-abrir {
+      background: #1a472a;
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-copiar:hover, .btn-abrir:hover { opacity: 0.85; }
+    .btn-copiado {
+      background: #f0fff4 !important;
+      color: #276749 !important;
+      border-color: #9ae6b4 !important;
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a472a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 999;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    footer {
+      background: #1a472a;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 14px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .areas-grid { padding: 0 16px 32px; }
+      .page-header { padding: 16px 16px 12px; }
+      .info-banner { margin: 0 16px 16px; }
+      .buscar { margin: 0 16px 16px; }
+      nav { padding: 0 16px; }
+      header { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">🌿</div>
+    <div>
+      <h1>Enlaces de Acceso Distribuido</h1>
+      <p>Agrofrutos Trading S.A. — SSOMA</p>
+    </div>
+  </div>
+  <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+</header>
+
+<nav>
+  <a href="index.html">Inicio</a>
+  <a href="reporte.html">Nuevo Reporte</a>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="accesos.html" class="active">Enlaces de Acceso</a>
+</nav>
+
+<div class="page-header">
+  <div>
+    <h2>Códigos QR por Área</h2>
+    <p>Imprime o comparte el QR de cada área para que los trabajadores reporten desde su celular</p>
+  </div>
+</div>
+
+<div class="info-banner">
+  💡 <strong>¿Cómo usar?</strong> Imprime el código QR de cada área y pégalo en un lugar visible. El trabajador solo escanea con su celular, llena el formulario y envía. Los reportes llegan directo al Dashboard SSOMA.
+</div>
+
+<div style="background:white; border:2px solid #1a472a; border-radius:12px; padding:20px; margin: 0 32px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+  <div id="qr-general" style="border:2px solid #e2e8f0; border-radius:8px; padding:8px; background:white;"></div>
+  <div style="flex:1; min-width:200px;">
+    <p style="font-size:13px; font-weight:700; color:#1a472a; margin-bottom:4px;">🔗 Enlace General — Para todos</p>
+    <p style="font-size:12px; color:#718096; margin-bottom:10px;">Comparte este único enlace o QR con cualquier trabajador. El formulario les permite seleccionar su área.</p>
+    <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; font-size:11px; color:#4a5568; word-break:break-all; font-family:monospace; margin-bottom:10px;" id="enlace-general-txt"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button onclick="copiarGeneral()" id="btn-general" style="background:#e8f5e9; color:#1a472a; border:1px solid #c6f6d5; padding:9px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">📋 Copiar enlace</button>
+      <a id="abrir-general" href="#" target="_blank" style="background:#1a472a; color:white; padding:9px 16px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">🔗 Abrir formulario</a>
+    </div>
+  </div>
+</div>
+
+<div id="areas-grid"></div>
+<div class="toast" id="toast">✅ Enlace copiado al portapapeles</div>
+
+<footer>
+  Sistema de Gestión de Incidencias — Agrofrutos Trading S.A. &copy; 2025
+</footer>
+
+<script>
+  const user = JSON.parse(sessionStorage.getItem('ssoma_user') || 'null');
+  if (!user) window.location.href = 'login.html';
+
+  const BASE = window.location.href.replace('accesos.html','') + 'reporte.html';
+
+  const areas = [
+    { key: 'mecanico',               nombre: 'Mecánico',                  icon: '🔩', desc: 'Taller mecánico' },
+    { key: 'caldera',                nombre: 'Caldera',                   icon: '🔥', desc: 'Sala de calderas' },
+    { key: 'flota',                  nombre: 'Flota',                     icon: '🚛', desc: 'Vehículos y transporte' },
+    { key: 'electrico',              nombre: 'Eléctrico',                 icon: '⚡', desc: 'Sistema eléctrico' },
+    { key: 'produccion-cdl',         nombre: 'Producción CDL',            icon: '🏭', desc: 'Planta CDL' },
+    { key: 'produccion-ael',         nombre: 'Producción AEL',            icon: '⚙️', desc: 'Planta AEL' },
+    { key: 'moliendo',               nombre: 'Moliendo',                  icon: '⚙️', desc: 'Área de molienda' },
+    { key: 'petar-zona',             nombre: 'Petar - Zona',              icon: '🌊', desc: 'Tratamiento de aguas' },
+    { key: 'zona-calderas',          nombre: 'Zona Calderas',             icon: '🔥', desc: 'Zona de calderas' },
+    { key: 'reservorios',            nombre: 'Reservorios',               icon: '💧', desc: 'Almacén de agua' },
+    { key: 'administracion',         nombre: 'Oficina Administración',    icon: '🏢', desc: 'Área administrativa' },
+    { key: 'vigilancia',             nombre: 'Vigilancia',                icon: '👮', desc: 'Seguridad y control' },
+    { key: 'patio-maniobras',        nombre: 'Patio de Maniobras',        icon: '🅿️', desc: 'Zona de maniobras' },
+    { key: 'tapic',                  nombre: 'Tapic',                     icon: '🏗️', desc: 'Área Tapic' },
+    { key: 'vestuario',              nombre: 'Vestuario',                 icon: '👕', desc: 'Camerinos' },
+    { key: 'recepcion-materia-prima',nombre: 'Recepción Materia Prima',   icon: '📦', desc: 'Ingreso de materiales' },
+    { key: 'almacen-general',        nombre: 'Almacén General',           icon: '🏬', desc: 'Almacenamiento general' },
+    { key: 'taller-flota',           nombre: 'Taller de Flota',           icon: '🔧', desc: 'Mantenimiento vehículos' },
+    { key: 'almacen-residuos',       nombre: 'Almacén Residuos Sólidos',  icon: '♻️', desc: 'Gestión de residuos' },
+    { key: 'laboratorio',            nombre: 'Laboratorio',               icon: '🔬', desc: 'Análisis general' },
+    { key: 'laboratorio-procesos',   nombre: 'Laboratorio Procesos',      icon: '🧪', desc: 'Control de procesos' },
+    { key: 'laboratorio-petar',      nombre: 'Laboratorio Petar',         icon: '🧫', desc: 'Lab. tratamiento aguas' },
+    { key: 'servicios-higienicos',   nombre: 'Servicios Higiénicos',      icon: '🚻', desc: 'Baños y SSHH' },
+  ];
+
+  function renderAreas(lista) {
+    const grid = document.getElementById('areas-grid');
+    grid.innerHTML = '';
+    lista.forEach(a => {
+      const url = BASE + '?area=' + a.key;
+      const div = document.createElement('div');
+      div.className = 'area-card';
+      div.innerHTML = `
+        <div class="card-header">
+          <div class="card-icon">${a.icon}</div>
+          <div>
+            <h3>${a.nombre}</h3>
+            <p>${a.desc}</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="qr-wrap">
+            <div id="qr-${a.key}"></div>
+          </div>
+          <div class="enlace-box">${url}</div>
+          <div class="card-btns">
+            <button class="btn-copiar" id="btn-${a.key}" onclick="copiar('${url}','${a.key}')">📋 Copiar enlace</button>
+            <a class="btn-abrir" href="${url}" target="_blank">🔗 Abrir</a>
+          </div>
+        </div>`;
+      grid.appendChild(div);
+
+      new QRCode(document.getElementById('qr-' + a.key), {
+        text: url,
+        width: 120,
+        height: 120,
+        colorDark: '#1a472a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+  }
+
+  function copiar(url, key) {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('btn-' + key);
+      btn.textContent = '✅ Copiado';
+      btn.classList.add('btn-copiado');
+      const toast = document.getElementById('toast');
+      toast.style.display = 'block';
+      setTimeout(() => {
+        btn.textContent = '📋 Copiar enlace';
+        btn.classList.remove('btn-copiado');
+        toast.style.display = 'none';
+      }, 2000);
+    });
+  }
+
+  function buscarArea() {
+    const q = document.getElementById('buscador').value.toLowerCase();
+    const filtradas = areas.filter(a =>
+      a.nombre.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q)
+    );
+    renderAreas(filtradas);
+  }
+
+  function cerrarSesion() {
+    sessionStorage.removeItem('ssoma_user');
+    window.location.href = 'login.html';
+  }
+
+// renderAreas(areas);
+  const urlGeneral = window.location.href.replace('accesos.html','') + 'reporte.html';
+  document.getElementById('enlace-general-txt').textContent = urlGeneral;
+  document.getElementById('abrir-general').href = urlGeneral;
+
+  new QRCode(document.getElementById('qr-general'), {
+    text: urlGeneral,
+    width: 120,
+    height: 120,
+    colorDark: '#1a472a',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  function copiarGeneral() {
+    navigator.clipboard.writeText(urlGeneral).then(() => {
+      const btn = document.getElementById('btn-general');
+      btn.textContent = '✅ Copiado';
+      setTimeout(() => { btn.textContent = '📋 Copiar enlace'; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

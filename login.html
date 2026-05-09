@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSOMA — Acceso Administrativo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #1a472a;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header .logo {
+      width: 40px; height: 40px;
+      background: #2d6a4f;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 { font-size: 16px; font-weight: 600; }
+    header p  { font-size: 12px; opacity: 0.8; }
+
+    .login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .login-icon {
+      width: 64px; height: 64px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 20px;
+    }
+    .login-card h2 {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a472a;
+      margin-bottom: 6px;
+    }
+    .login-card p.sub {
+      text-align: center;
+      font-size: 13px;
+      color: #718096;
+      margin-bottom: 28px;
+    }
+    .badge-ssoma {
+      display: block;
+      text-align: center;
+      background: #e8f5e9;
+      color: #1a472a;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      letter-spacing: 0.05em;
+    }
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2d3748;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .field input:focus { border-color: #2d6a4f; }
+    .btn-login {
+      width: 100%;
+      background: #1a472a;
+      color: white;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .btn-login:hover { background: #2d6a4f; }
+    .error-msg {
+      display: none;
+      background: #fff5f5;
+      color: #c53030;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .usuarios-info {
+      margin-top: 28px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+    }
+    .usuarios-info p {
+      font-size: 12px;
+      color: #a0aec0;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #f7fafc;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      transition: background 0.15s;
+    }
+    .user-item:hover { background: #edf2f7; }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+    .user-item .u-name { font-size: 13px; font-weight: 600; color: #2d3748; }
+    .user-item .u-role { font-size: 11px; color: #718096; }
+    footer {
+      background: #1a472a;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 14px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <button onclick="history.back()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:white; padding:7px 14px; border-radius:8px; font-size:13px; cursor:pointer; margin-right:8px;">← Regresar</button>
+  <div class="logo">🌿</div>
+  <div>
+    <h1>Sistema de Gestión de Incidencias y Riesgos</h1>
+    <p>Agrofrutos Trading S.A.</p>
+  </div>
+</header>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-icon">🛡️</div>
+    <h2>Acceso SSOMA</h2>
+    <p class="sub">Panel exclusivo para personal autorizado</p>
+    <span class="badge-ssoma">ÁREA DE SEGURIDAD Y SALUD OCUPACIONAL</span>
+
+    <div class="error-msg" id="error-msg">
+      Usuario o contraseña incorrectos. Intenta nuevamente.
+    </div>
+
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="usuario" placeholder="Ingresa tu usuario" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
+    </div>
+    <button class="btn-login" onclick="iniciarSesion()">Ingresar al Sistema</button>
+
+    <div class="usuarios-info">
+      <p>Acceso rápido — clic para autocompletar:</p>
+      <div class="user-list">
+        <div class="user-item" onclick="autocompletar('jefe.ssoma','ssoma2025')">
+          <div class="user-avatar" style="background:#1a472a;">JS</div>
+          <div>
+            <div class="u-name">Jefe SSOMA</div>
+            <div class="u-role">Administrador principal</div>
+          </div>
+        </div>
+        <div class="user-item" onclick="autocompletar('asistente1','asist2025')">
+          <div class="user-avatar" style="background:#2d6a4f;">A1</div>
+          <div>
+            <div class="u-name">Asistente SSOMA 1</div>
+            <div class="u-role">Acceso completo</div>
+          </div>
+        </div>
+        <div class="user-item" onclick="autocompletar('asistente2','asist2025')">
+          <div class="user-avatar" style="background:#40916c;">A2</div>
+          <div>
+            <div class="u-name">Asistente SSOMA 2</div>
+            <div class="u-role">Acceso completo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Sistema de Gestión de Incidencias — Agrofrutos Trading S.A. &copy; 2025
+</footer>
+
+<script>
+  const usuarios = [
+    { usuario: 'jefe.ssoma',  password: 'ssoma2025', nombre: 'Jefe SSOMA',        rol: 'Administrador' },
+    { usuario: 'asistente1',  password: 'asist2025', nombre: 'Asistente SSOMA 1', rol: 'Asistente' },
+    { usuario: 'asistente2',  password: 'asist2025', nombre: 'Asistente SSOMA 2', rol: 'Asistente' },
+  ];
+
+  function autocompletar(u, p) {
+    document.getElementById('usuario').value  = u;
+    document.getElementById('password').value = p;
+    document.getElementById('usuario').focus();
+  }
+
+  function iniciarSesion() {
+    const u = document.getElementById('usuario').value.trim();
+    const p = document.getElementById('password').value.trim();
+    const found = usuarios.find(x => x.usuario === u && x.password === p);
+
+    if (found) {
+      sessionStorage.setItem('ssoma_user', JSON.stringify(found));
+      window.location.href = 'dashboard.html';
+    } else {
+      document.getElementById('error-msg').style.display = 'block';
+      document.getElementById('password').value = '';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') iniciarSesion();
+  });
+
+  if (sessionStorage.getItem('ssoma_user')) {
+    window.location.href = 'dashboard.html';
+  }
+</script>
+</body>
+</html>

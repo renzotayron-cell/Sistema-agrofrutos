@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión de Incidencias - Agrofrutos Trading S.A.</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+
+    header {
+      background: #1a472a;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header .logo {
+      width: 48px; height: 48px;
+      background: #2d6a4f;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header p  { font-size: 12px; opacity: 0.8; }
+
+    nav {
+      background: #2d6a4f;
+      display: flex;
+      gap: 4px;
+      padding: 0 32px;
+    }
+    nav a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      padding: 12px 20px;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: white;
+      border-bottom-color: #74c69d;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1a472a, #2d6a4f);
+      color: white;
+      padding: 48px 32px;
+      text-align: center;
+    }
+    .hero h2 { font-size: 28px; margin-bottom: 10px; }
+    .hero p  { font-size: 15px; opacity: 0.85; max-width: 600px; margin: 0 auto 28px; }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: #74c69d; color: #1a472a;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 15px;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #52b788; }
+    .btn-secondary {
+      background: transparent; color: white;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 15px;
+      text-decoration: none; border: 2px solid rgba(255,255,255,0.5);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.1); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      padding: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border-left: 4px solid #2d6a4f;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .stat-card .num  { font-size: 32px; font-weight: 700; color: #1a472a; }
+    .stat-card .lbl  { font-size: 13px; color: #718096; margin-top: 4px; }
+    .stat-card.danger  { border-left-color: #ec3939; }
+    .stat-card.danger .num { color: #e53e3e; }
+    .stat-card.warning { border-left-color: #dd6b20; }
+    .stat-card.warning .num { color: #dd6b20; }
+    .stat-card.info    { border-left-color: #3182ce; }
+    .stat-card.info .num    { color: #3182ce; }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px 32px;
+    }
+    .section h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a472a;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .areas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .area-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .area-card:hover {
+      border-color: #2d6a4f;
+      box-shadow: 0 4px 12px rgba(45,106,79,0.15);
+      transform: translateY(-2px);
+    }
+    .area-card .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .area-card h4 { font-size: 14px; font-weight: 600; color: #2d3748; }
+    .area-card p  { font-size: 12px; color: #718096; margin-top: 4px; }
+    .area-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: #e6fffa;
+      color: #2c7a7b;
+      font-weight: 500;
+    }
+
+    .recientes {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .recientes table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .recientes th {
+      background: #f7fafc;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #4a5568;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .recientes td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f4f8;
+      color: #2d3748;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.alto    { background: #fff5f5; color: #c53030; }
+    .badge.medio   { background: #fffaf0; color: #c05621; }
+    .badge.bajo    { background: #f0fff4; color: #276749; }
+    .badge.abierto { background: #ebf8ff; color: #2b6cb0; }
+    .badge.cerrado { background: #f0fff4; color: #276749; }
+
+    footer {
+      background: #1a472a;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 20px;
+      font-size: 13px;
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌿</div>
+  <div>
+    <h1>Sistema de Gestión de Incidencias y Riesgos</h1>
+    <p>Agrofrutos Trading S.A. — Entorno Industrial</p>
+  </div>
+</header>
+
+<nav>
+  <a href="index.html" class="active">Inicio</a>
+  <a href="reporte.html">Nuevo Reporte</a>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="accesos.html">Enlaces de Acceso</a>
+</nav>
+
+<div class="hero">
+  <h2>Gestión Integral de Seguridad Industrial</h2>
+  <p>Reporta incidencias y riesgos de forma rápida desde cualquier área de la empresa mediante enlaces de acceso directo.</p>
+  <div class="hero-btns">
+    <a href="reporte.html" class="btn-primary">+ Nuevo Reporte de Incidencia</a>
+    <a href="dashboard.html" class="btn-secondary">Ver Dashboard</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-card danger">
+    <div class="num" id="total-alto">0</div>
+    <div class="lbl">Riesgo Alto</div>
+  </div>
+  <div class="stat-card warning">
+    <div class="num" id="total-medio">0</div>
+    <div class="lbl">Riesgo Medio</div>
+  </div>
+  <div class="stat-card info">
+    <div class="num" id="total-abierto">0</div>
+    <div class="lbl">Casos Abiertos</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" id="total-reportes">0</div>
+    <div class="lbl">Total Reportes</div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Áreas de la Empresa — Acceso Rápido</h3>
+  <div class="areas-grid">
+    <a href="reporte.html?area=mecanico" class="area-card">
+      <div class="icon">🔧</div>
+      <h4>Mecánico</h4>
+    </a>
+    <a href="reporte.html?area=mantenimiento-mecanico" class="area-card">
+      <div class="icon">⚙️</div>
+      <h4>Mantenimiento Mecánico</h4>
+    </a>
+    <a href="reporte.html?area=mantenimiento-electrico" class="area-card">
+      <div class="icon">⚡</div>
+      <h4>Mantenimiento Eléctrico</h4>
+    </a>
+    <a href="reporte.html?area=flota" class="area-card">
+      <div class="icon">🚛</div>
+      <h4>Flota</h4>
+    </a>
+    <a href="reporte.html?area=produccion-cdl" class="area-card">
+      <div class="icon">🏭</div>
+      <h4>Producción CDL</h4>
+    </a>
+    <a href="reporte.html?area=produccion-ael" class="area-card">
+      <div class="icon">🏭</div>
+      <h4>Producción AEL</h4>
+    </a>
+    <a href="reporte.html?area=moliendo" class="area-card">
+      <div class="icon">⚙️</div>
+      <h4>Moliendo</h4>
+    </a>
+    <a href="reporte.html?area=picado-lavado-exprimido" class="area-card">
+      <div class="icon">🍋</div>
+      <h4>Picado, Lavado y Exprimido</h4>
+    </a>
+    <a href="reporte.html?area=petar" class="area-card">
+      <div class="icon">🧴</div>
+      <h4>Petar</h4>
+    </a>
+    <a href="reporte.html?area=zona-calderas" class="area-card">
+      <div class="icon">♨️</div>
+      <h4>Zona Calderas</h4>
+    </a>
+    <a href="reporte.html?area=reservorios" class="area-card">
+      <div class="icon">💧</div>
+      <h4>Reservorios</h4>
+    </a>
+    <a href="reporte.html?area=administracion" class="area-card">
+      <div class="icon">🏢</div>
+      <h4>Oficina Administración</h4>
+    </a>
+    <a href="reporte.html?area=vigilancia" class="area-card">
+      <div class="icon">🛡️</div>
+      <h4>Vigilancia</h4>
+    </a>
+    <a href="reporte.html?area=patio-maniobras" class="area-card">
+      <div class="icon">🚧</div>
+      <h4>Patio de Maniobras</h4>
+    </a>
+    <a href="reporte.html?area=tapic" class="area-card">
+      <div class="icon">🏗️</div>
+      <h4>Tapic</h4>
+    </a>
+    <a href="reporte.html?area=vestuario" class="area-card">
+      <div class="icon">👔</div>
+      <h4>Vestuario</h4>
+    </a>
+    <a href="reporte.html?area=topico" class="area-card">
+      <div class="icon">🏥</div>
+      <h4>Tópico</h4>
+    </a>
+    <a href="reporte.html?area=recepcion-materia-prima" class="area-card">
+      <div class="icon">📦</div>
+      <h4>Recepción Materia Prima</h4>
+    </a>
+    <a href="reporte.html?area=almacen-general" class="area-card">
+      <div class="icon">🏬</div>
+      <h4>Almacén General</h4>
+    </a>
+    <a href="reporte.html?area=almacen-residuos" class="area-card">
+      <div class="icon">☣️</div>
+      <h4>Almacén Residuos Sólidos y Peligrosos</h4>
+    </a>
+    <a href="reporte.html?area=taller-flota" class="area-card">
+      <div class="icon">🔩</div>
+      <h4>Taller de Flota</h4>
+    </a>
+    <a href="reporte.html?area=laboratorio" class="area-card">
+      <div class="icon">🔬</div>
+      <h4>Laboratorio</h4>
+    </a>
+    <a href="reporte.html?area=laboratorio-segundo-piso" class="area-card">
+      <div class="icon">🧪</div>
+      <h4>Laboratorio 2do Piso</h4>
+    </a>
+    <a href="reporte.html?area=laboratorio-procesos" class="area-card">
+      <div class="icon">⚗️</div>
+      <h4>Laboratorio Procesos</h4>
+    </a>
+    <a href="reporte.html?area=laboratorio-petar" class="area-card">
+      <div class="icon">🧫</div>
+      <h4>Laboratorio Petar</h4>
+    </a>
+    <a href="reporte.html?area=servicios-higienicos" class="area-card">
+      <div class="icon">🚻</div>
+      <h4>Servicios Higiénicos</h4>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Reportes Recientes</h3>
+  <div class="recientes">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Área</th>
+          <th>Descripción</th>
+          <th>Riesgo</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-reportes">
+        <tr>
+          <td colspan="6" style="text-align:center; color:#718096; padding:32px;">
+            Aún no hay reportes. <a href="reporte.html" style="color:#2d6a4f;">Crear el primero</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  Sistema de Gestión de Incidencias y Riesgos — Agrofrutos Trading S.A. &copy; 2025
+</footer>
+
+<script>
+  const reportes = JSON.parse(localStorage.getItem('reportes') || '[]');
+  document.getElementById('total-reportes').textContent = reportes.length;
+  document.getElementById('total-alto').textContent    = reportes.filter(r => r.riesgo === 'Alto').length;
+  document.getElementById('total-medio').textContent   = reportes.filter(r => r.riesgo === 'Medio').length;
+  document.getElementById('total-abierto').textContent = reportes.filter(r => r.estado === 'Abierto').length;
+
+  if (reportes.length > 0) {
+    const tbody = document.getElementById('tabla-reportes');
+    tbody.innerHTML = '';
+    reportes.slice().reverse().slice(0, 8).forEach((r, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>#${String(reportes.length - i).padStart(3,'0')}</td>
+          <td>${r.area}</td>
+          <td>${r.descripcion.substring(0,50)}${r.descripcion.length>50?'...':''}</td>
+          <td><span class="badge ${r.riesgo.toLowerCase()}">${r.riesgo}</span></td>
+          <td><span class="badge ${r.estado.toLowerCase()}">${r.estado}</span></td>
+          <td>${r.fecha}</td>
+        </tr>`;
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportar Incidencia — Agrofrutos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+    header { background: #1a472a; color: white; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+    .logo { width: 38px; height: 38px; background: #2d6a4f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    header h1 { font-size: 15px; font-weight: 600; }
+    header p  { font-size: 11px; opacity: 0.8; }
+    .btn-regresar { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; margin-right: 8px; }
+    .area-banner { background: #2d6a4f; color: white; padding: 10px 20px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .area-banner strong { font-size: 14px; }
+    .form-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px 40px; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 14px; border: 1px solid #e2e8f0; }
+    .card h3 { font-size: 14px; font-weight: 600; color: #1a472a; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e8f5e9; display: flex; align-items: center; gap: 8px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+    .field label span { color: #e53e3e; }
+    .field input, .field select, .field textarea { width: 100%; padding: 10px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #2d3748; outline: none; font-family: 'Segoe UI', sans-serif; transition: border-color 0.2s; background: white; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #2d6a4f; }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .btn-enviar { width: 100%; background: #1a472a; color: white; border: none; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'Segoe UI', sans-serif; transition: background 0.2s; margin-top: 6px; }
+    .btn-enviar:hover { background: #2d6a4f; }
+    .btn-enviar:disabled { background: #a0aec0; cursor: not-allowed; }
+    .success-screen { display: none; text-align: center; padding: 48px 24px; }
+    .success-screen .check { width: 72px; height: 72px; background: #f0fff4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
+    .success-screen h2 { font-size: 20px; color: #1a472a; margin-bottom: 10px; }
+    .success-screen p  { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.6; }
+    .btn-nuevo { background: #1a472a; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
+    .error-field { border-color: #e53e3e !important; }
+    .error-txt { color: #e53e3e; font-size: 11px; margin-top: 4px; display: none; }
+    footer { background: #1a472a; color: rgba(255,255,255,0.6); text-align: center; padding: 14px; font-size: 12px; }
+    .foto-preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <button class="btn-regresar" onclick="history.back()">← Regresar</button>
+  <div class="logo">🌿</div>
+  <div>
+    <h1>Reportar Incidencia o Riesgo</h1>
+    <p>Agrofrutos Trading S.A. — SSOMA</p>
+  </div>
+</header>
+
+<div class="area-banner">
+  <span>📍 Área:</span>
+  <strong id="area-nombre">Cargando...</strong>
+</div>
+
+<div class="form-wrap">
+  <div id="form-contenido">
+
+    <div class="card">
+      <h3>👤 Datos del Reportante</h3>
+      <div class="field">
+        <label>Nombre completo <span>*</span></label>
+        <input type="text" id="nombre" placeholder="Ej: Juan Pérez García" />
+        <p class="error-txt" id="err-nombre">Campo obligatorio</p>
+      </div>
+      <div class="field">
+        <label>Cargo / Puesto <span>*</span></label>
+        <input type="text" id="cargo" placeholder="Ej: Operario, Supervisor, Técnico..." />
+        <p class="error-txt" id="err-cargo">Campo obligatorio</p>
+      </div>
+      <div class="field">
+        <label>Área <span>*</span></label>
+        <select id="area-select">
+          <option value="">Selecciona el área</option>
+          <option value="Mecánico">Mecánico</option>
+          <option value="Mantenimiento Mecánico">Mantenimiento Mecánico</option>
+          <option value="Mantenimiento Eléctrico">Mantenimiento Eléctrico</option>
+          <option value="Flota">Flota</option>
+          <option value="Producción CDL">Producción CDL</option>
+          <option value="Producción AEL">Producción AEL</option>
+          <option value="Moliendo">Moliendo</option>
+          <option value="Picado, Lavado y Exprimido">Picado, Lavado y Exprimido</option>
+          <option value="Petar">Petar</option>
+          <option value="Zona Calderas">Zona Calderas</option>
+          <option value="Reservorios">Reservorios</option>
+          <option value="Oficina Administración">Oficina Administración</option>
+          <option value="Vigilancia">Vigilancia</option>
+          <option value="Patio de Maniobras">Patio de Maniobras</option>
+          <option value="Tapic">Tapic</option>
+          <option value="Vestuario">Vestuario</option>
+          <option value="Tópico">Tópico</option>
+          <option value="Recepción Materia Prima">Recepción Materia Prima</option>
+          <option value="Almacén General">Almacén General</option>
+          <option value="Almacén Residuos Sólidos y Peligrosos">Almacén Residuos Sólidos y Peligrosos</option>
+          <option value="Taller de Flota">Taller de Flota</option>
+          <option value="Laboratorio">Laboratorio</option>
+          <option value="Laboratorio 2do Piso">Laboratorio 2do Piso</option>
+          <option value="Laboratorio Procesos">Laboratorio Procesos</option>
+          <option value="Laboratorio Petar">Laboratorio Petar</option>
+          <option value="Servicios Higiénicos">Servicios Higiénicos</option>
+        </select>
+        <p class="error-txt" id="err-area">Campo obligatorio</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ Datos de la Incidencia</h3>
+      <div class="field">
+        <label>Tipo de incidencia <span>*</span></label>
+        <select id="tipo">
+          <option value="">Selecciona el tipo</option>
+          <option value="Accidente de trabajo">Accidente de trabajo</option>
+          <option value="Incidente peligroso">Incidente peligroso</option>
+          <option value="Condición insegura">Condición insegura</option>
+          <option value="Acto inseguro">Acto inseguro</option>
+          <option value="Derrame / fuga">Derrame / fuga</option>
+          <option value="Incendio / amago">Incendio / amago</option>
+          <option value="Falla de equipo">Falla de equipo</option>
+          <option value="Riesgo eléctrico">Riesgo eléctrico</option>
+          <option value="Riesgo químico">Riesgo químico</option>
+          <option value="Caída / tropiezo">Caída / tropiezo</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <p class="error-txt" id="err-tipo">Campo obligatorio</p>
+      </div>
+      <div class="field">
+        <label>Descripción detallada <span>*</span></label>
+        <textarea id="descripcion" placeholder="Describe qué ocurrió, dónde exactamente, cómo sucedió..."></textarea>
+        <p class="error-txt" id="err-desc">Campo obligatorio</p>
+      </div>
+      <div class="field">
+        <label>¿Hubo persona lesionada?</label>
+        <select id="lesionado">
+          <option value="No">No</option>
+          <option value="Sí — leve">Sí — leve</option>
+          <option value="Sí — grave">Sí — grave</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 Nivel de Riesgo <span style="color:#e53e3e; font-size:12px;">*</span></h3>
+      <div class="field">
+        <select id="riesgo-select" onchange="selRiesgo(this.value)">
+          <option value="">Selecciona el nivel de riesgo</option>
+          <option value="Alto">🔴 Alto — Atención inmediata</option>
+          <option value="Medio">🟡 Medio — Seguimiento activo</option>
+          <option value="Bajo">🟢 Bajo — Riesgo controlado</option>
+        </select>
+        <p class="error-txt" id="err-riesgo">Selecciona el nivel de riesgo</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📷 Evidencia Fotográfica</h3>
+      <div class="field">
+        <label>¿Tiene foto de evidencia?</label>
+        <select id="tiene-foto" onchange="toggleFoto(this.value)">
+          <option value="No">No tengo foto</option>
+          <option value="Sí">Sí tengo foto</option>
+        </select>
+      </div>
+      <div id="campo-foto" style="display:none; margin-top:10px;">
+        <label style="display:block; font-size:13px; font-weight:600; color:#4a5568; margin-bottom:6px;">Selecciona la foto</label>
+        <input type="file" id="fotos" accept="image/*" multiple style="width:100%; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:13px; background:white;" onchange="previsualizarFotos(this)" />
+        <div id="foto-preview" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📝 Acción Inmediata Tomada</h3>
+      <div class="field">
+        <label>¿Qué se hizo de inmediato?</label>
+        <textarea id="accion" placeholder="Ej: Se cerró el área, se avisó al supervisor..." style="min-height:70px;"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-enviar" id="btn-enviar" onclick="enviarReporte()">
+      📤 Enviar Reporte de Incidencia
+    </button>
+
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="check">✅</div>
+    <h2>¡Reporte enviado!</h2>
+    <p>Tu reporte fue registrado correctamente.<br>El área SSOMA fue notificada y tomará las acciones correspondientes.</p>
+    <p id="codigo-reporte" style="font-weight:600; color:#1a472a; font-size:16px; margin-bottom:20px;"></p>
+    <button class="btn-nuevo" onclick="nuevoReporte()">Enviar otro reporte</button>
+  </div>
+</div>
+
+<footer>
+  Sistema de Gestión de Incidencias — Agrofrutos Trading S.A. &copy; 2025
+</footer>
+
+<script>
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx5nbOaFNkYHbph3lqO81nj4iCPXdiPTbCfo4V2N9kPDuyonJpEXtKyuKYVyFdLM84A/exec';
+  let riesgoSel = '';
+
+  const params = new URLSearchParams(window.location.search);
+  const areaParam = params.get('area') || '';
+  const areaMap = {
+    'mecanico': 'Mecánico', 'mantenimiento-mecanico': 'Mantenimiento Mecánico',
+    'mantenimiento-electrico': 'Mantenimiento Eléctrico', 'flota': 'Flota',
+    'produccion-cdl': 'Producción CDL', 'produccion-ael': 'Producción AEL',
+    'moliendo': 'Moliendo', 'picado-lavado-exprimido': 'Picado, Lavado y Exprimido',
+    'petar': 'Petar', 'zona-calderas': 'Zona Calderas', 'reservorios': 'Reservorios',
+    'administracion': 'Oficina Administración', 'vigilancia': 'Vigilancia',
+    'patio-maniobras': 'Patio de Maniobras', 'tapic': 'Tapic', 'vestuario': 'Vestuario',
+    'topico': 'Tópico', 'recepcion-materia-prima': 'Recepción Materia Prima',
+    'almacen-general': 'Almacén General', 'almacen-residuos': 'Almacén Residuos Sólidos y Peligrosos',
+    'taller-flota': 'Taller de Flota', 'laboratorio': 'Laboratorio',
+    'laboratorio-segundo-piso': 'Laboratorio 2do Piso', 'laboratorio-procesos': 'Laboratorio Procesos',
+    'laboratorio-petar': 'Laboratorio Petar', 'servicios-higienicos': 'Servicios Higiénicos'
+  };
+
+  const areaNombre = areaMap[areaParam] || 'General';
+  document.getElementById('area-nombre').textContent = areaNombre;
+  const sel = document.getElementById('area-select');
+  for (let opt of sel.options) {
+    if (opt.value === areaNombre) { opt.selected = true; break; }
+  }
+
+  function toggleFoto(val) {
+    document.getElementById('campo-foto').style.display = val === 'Sí' ? 'block' : 'none';
+  }
+
+  function selRiesgo(nivel) {
+    riesgoSel = nivel;
+    if (nivel) document.getElementById('err-riesgo').style.display = 'none';
+  }
+
+  function previsualizarFotos(input) {
+    const preview = document.getElementById('foto-preview');
+    preview.innerHTML = '';
+    Array.from(input.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #e2e8f0;';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function validar() {
+    let ok = true;
+    const campos = [
+      { id: 'nombre', err: 'err-nombre' },
+      { id: 'cargo',  err: 'err-cargo'  },
+      { id: 'area-select', err: 'err-area' },
+      { id: 'tipo',   err: 'err-tipo'   },
+      { id: 'descripcion', err: 'err-desc' },
+    ];
+    campos.forEach(c => {
+      const el = document.getElementById(c.id);
+      const err = document.getElementById(c.err);
+      if (!el.value.trim()) {
+        el.classList.add('error-field');
+        err.style.display = 'block';
+        ok = false;
+      } else {
+        el.classList.remove('error-field');
+        err.style.display = 'none';
+      }
+    });
+    if (!riesgoSel) {
+      document.getElementById('err-riesgo').style.display = 'block';
+      ok = false;
+    }
+    return ok;
+  }
+
+  function enviarReporte() {
+    if (!validar()) return;
+    const btn = document.getElementById('btn-enviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    const ahora = new Date();
+    const reporte = {
+      fecha: ahora.toISOString().split('T')[0],
+      hora: ahora.toTimeString().split(' ')[0].substring(0,5),
+      area: document.getElementById('area-select').value,
+      tipo: document.getElementById('tipo').value,
+      descripcion: document.getElementById('descripcion').value,
+      riesgo: riesgoSel,
+      reportado_por: document.getElementById('nombre').value + ' — ' + document.getElementById('cargo').value,
+      lesionado: document.getElementById('lesionado').value,
+      accion: document.getElementById('accion').value,
+      estado: 'Abierto'
+    };
+    const reportes = JSON.parse(localStorage.getItem('reportes') || '[]');
+    reportes.push(reporte);
+    localStorage.setItem('reportes', JSON.stringify(reportes));
+    fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reporte)
+    }).finally(() => {
+      const codigo = 'RPT-' + String(reportes.length).padStart(4,'0') + '-' + ahora.getFullYear();
+      document.getElementById('codigo-reporte').textContent = 'Código: ' + codigo;
+      document.getElementById('form-contenido').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+    });
+  }
+
+  function nuevoReporte() {
+    document.getElementById('form-contenido').style.display = 'block';
+    document.getElementById('success-screen').style.display = 'none';
+    document.getElementById('btn-enviar').disabled = false;
+    document.getElementById('btn-enviar').textContent = '📤 Enviar Reporte de Incidencia';
+    riesgoSel = '';
+    document.getElementById('riesgo-select').value = '';
+    document.getElementById('foto-preview').innerHTML = '';
+    document.getElementById('campo-foto').style.display = 'none';
+    document.getElementById('tiene-foto').value = 'No';
+    ['nombre','cargo','tipo','descripcion','accion'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+</script>
+</body>
+</html>
