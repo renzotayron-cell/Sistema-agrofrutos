@@ -455,8 +455,8 @@ function exportPDF() {
       @media print{body{padding:10px;}}
     </style>
   </head><body>
-    <h1>🌿 Reporte de Incidencias — Agrofrutos Trading S.A.</h1>
-    <h2>Generado por: ${user.nombre} | Fecha: ${fecha} | Total: ${datos.length} reportes</h2>
+<button onclick="window.close()" style="background:#1a472a;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:16px;">← Regresar al Dashboard</button>
+<h1>🌿 Reporte de Incidencias — Agrofrutos Trading S.A.</h1>    <h2>Generado por: ${user.nombre} | Fecha: ${fecha} | Total: ${datos.length} reportes</h2>
     <div class="stats">
       <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r=>r.riesgo==='Alto').length}</div><div class="l">Alto</div></div>
       <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r=>r.riesgo==='Medio').length}</div><div class="l">Medio</div></div>
