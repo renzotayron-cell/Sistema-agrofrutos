@@ -472,11 +472,29 @@ function renderTabla(lista) {
   });
 }
 
-function cambiar(i,e) { datos[i].estado=e; actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts(); }
-function abrirDel(i)  { idxDel=i; document.getElementById('mdel').classList.add('on'); }
+async function cambiar(i, e) {
+  datos[i].estado = e;
+  actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts();
+  await fetch(URL_API, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ accion: 'actualizar_estado', fila: i, estado: e })
+  });
+}function abrirDel(i)  { idxDel=i; document.getElementById('mdel').classList.add('on'); }
 function cerrarModal() { document.getElementById('mdel').classList.remove('on'); idxDel=-1; }
-function okEliminar()  {
-  if(idxDel>=0){ datos.splice(idxDel,1); actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts(); cerrarModal(); }
+async function okEliminar() {
+  if(idxDel >= 0) {
+    const fila = idxDel;
+    datos.splice(idxDel, 1);
+    actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts(); cerrarModal();
+    await fetch(URL_API, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ accion: 'eliminar', fila: fila })
+    });
+  }
 }
 
 function verDetalle(i) {
