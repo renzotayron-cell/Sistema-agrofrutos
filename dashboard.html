@@ -289,7 +289,7 @@
 // =====================================================================
 // CONFIGURACION
 // =====================================================================
-const URL_API = 'https://script.google.com/macros/s/AKfycbx5nbOaFNkYHbph3lqO81nj4iCPXdiPTbCfo4V2N9kPDuyonJpEXtKyuKYVyFdLM84A/exec';
+const URL_API = 'https://script.google.com/macros/s/AKfycbzDp4Ki-5Tl7s_BBHBQ-UIYJn8tkDkLtWl2uVWy6PY68e3zpxanjly2FfQY7kiRY6Gu/exec';
 
 // =====================================================================
 // SESION
@@ -527,37 +527,40 @@ function renderTabla(lista) {
 }
 
 // =====================================================================
-// ✅ CAMBIAR ESTADO — usa fetch con _idx real
+// ✅ CAMBIAR ESTADO — fetch GET con parametros en URL
 // =====================================================================
 async function cambiar(i, nuevoEstado, btnEl) {
-  // Deshabilitamos botones de esa fila mientras se guarda
   const btnEp = document.getElementById('btn-ep-' + i);
   const btnCe = document.getElementById('btn-ce-' + i);
   if (btnEp) btnEp.disabled = true;
   if (btnCe) btnCe.disabled = true;
 
-  const idxSheet = datos[i]._idx; // ✅ indice real de Sheets
+  const idxSheet = datos[i]._idx;
   datos[i].estado = nuevoEstado;
   actualizarKPIs();
   filtrar();
   if (chartsOk) actualizarCharts();
 
   try {
-    await fetch(URL_API, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        accion: 'actualizar_estado',
-        _idx: idxSheet,        // ✅ enviamos _idx real, no el indice local
-        estado: nuevoEstado
-      })
-    });
-    toast('Estado actualizado a "' + nuevoEstado + '" correctamente ✓');
+    const url = URL_API + '?' + new URLSearchParams({
+      accion: 'actualizar_estado',
+      _idx: idxSheet,
+      estado: nuevoEstado
+    }).toString();
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.resultado === 'ok') {
+      toast('Estado actualizado a "' + nuevoEstado + '" ✓');
+    } else {
+      toast('Error del servidor: ' + (json.mensaje || 'desconocido'), 'error');
+    }
   } catch (err) {
     console.error('Error al actualizar estado:', err);
     toast('Error al guardar. Recarga la pagina.', 'error');
   }
+
+  if (btnEp) btnEp.disabled = false;
+  if (btnCe) btnCe.disabled = false;
 }
 
 // =====================================================================
@@ -573,7 +576,7 @@ function cerrarModal() {
   idxDel = -1;
 }
 
-// ✅ ELIMINAR — usa fetch con _idx real
+// ✅ ELIMINAR — fetch GET con parametros en URL
 async function okEliminar() {
   if (idxDel < 0) return;
 
@@ -581,7 +584,7 @@ async function okEliminar() {
   btn.disabled = true;
   btn.textContent = 'Eliminando...';
 
-  const idxSheet = datos[idxDel]._idx; // ✅ guardamos _idx ANTES del splice
+  const idxSheet = datos[idxDel]._idx; // guardamos _idx ANTES del splice
   datos.splice(idxDel, 1);
   actualizarKPIs();
   filtrar();
@@ -589,19 +592,20 @@ async function okEliminar() {
   cerrarModal();
 
   try {
-    await fetch(URL_API, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        accion: 'eliminar',
-        _idx: idxSheet         // ✅ enviamos _idx real
-      })
-    });
-    toast('Reporte eliminado correctamente ✓');
+    const url = URL_API + '?' + new URLSearchParams({
+      accion: 'eliminar',
+      _idx: idxSheet
+    }).toString();
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.resultado === 'ok') {
+      toast('Reporte eliminado correctamente ✓');
+    } else {
+      toast('Error del servidor: ' + (json.mensaje || 'desconocido'), 'error');
+    }
   } catch (err) {
     console.error('Error al eliminar:', err);
-    toast('Error al eliminar en el servidor. Recarga la pagina.', 'error');
+    toast('Error al eliminar. Recarga la pagina.', 'error');
   }
 
   btn.disabled = false;
