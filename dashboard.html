@@ -535,6 +535,9 @@ async function cambiar(i, nuevoEstado, btnEl) {
   if (btnEp) btnEp.disabled = true;
   if (btnCe) btnCe.disabled = true;
 
+  // Pausamos el auto-recarga para que no pise el cambio
+  clearInterval(intervalo);
+
   const idxSheet = datos[i]._idx;
   datos[i].estado = nuevoEstado;
   actualizarKPIs();
@@ -561,6 +564,12 @@ async function cambiar(i, nuevoEstado, btnEl) {
 
   if (btnEp) btnEp.disabled = false;
   if (btnCe) btnCe.disabled = false;
+
+  // Reanudamos el auto-recarga después de 5 segundos
+  setTimeout(() => {
+    intervalo = setInterval(cargar, 30000);
+  }, 5000);
+
 }
 
 // =====================================================================
@@ -840,7 +849,7 @@ function cerrarSesion() {
 // INICIO
 // =====================================================================
 cargar();
-setInterval(cargar, 30000);
+let intervalo = setInterval(cargar, 30000);
 </script>
 </body>
 </html>
