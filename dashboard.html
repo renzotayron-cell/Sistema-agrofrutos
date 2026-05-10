@@ -269,7 +269,7 @@
     </div>
   </div>
 </div>
-
+<iframe name="hif" style="display:none;"></iframe>
 <footer>Sistema de Gestion de Incidencias &mdash; Agrofrutos Trading S.A. &copy; 2025</footer>
 
 <script>
@@ -472,30 +472,45 @@ function renderTabla(lista) {
   });
 }
 
-async function cambiar(i, e) {
+function cambiar(i, e) {
   datos[i].estado = e;
   actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts();
-  await fetch(URL_API, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ accion: 'actualizar_estado', fila: i, estado: e })
-  });
-}function abrirDel(i)  { idxDel=i; document.getElementById('mdel').classList.add('on'); }
+  const f = document.createElement('form');
+  f.method = 'POST';
+  f.action = URL_API;
+  f.target = 'hif';
+  const inp = document.createElement('input');
+  inp.type = 'hidden';
+  inp.name = 'payload';
+  inp.value = JSON.stringify({ accion: 'actualizar_estado', fila: i, estado: e });
+  f.appendChild(inp);
+  document.body.appendChild(f);
+  f.submit();
+  document.body.removeChild(f);
+}
+
+function abrirDel(i)  { idxDel=i; document.getElementById('mdel').classList.add('on'); }
 function cerrarModal() { document.getElementById('mdel').classList.remove('on'); idxDel=-1; }
-async function okEliminar() {
+function okEliminar() {
   if(idxDel >= 0) {
     const fila = idxDel;
     datos.splice(idxDel, 1);
     actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts(); cerrarModal();
-    await fetch(URL_API, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ accion: 'eliminar', fila: fila })
-    });
+    const f = document.createElement('form');
+    f.method = 'POST';
+    f.action = URL_API;
+    f.target = 'hif';
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'payload';
+    inp.value = JSON.stringify({ accion: 'eliminar', fila: fila });
+    f.appendChild(inp);
+    document.body.appendChild(f);
+    f.submit();
+    document.body.removeChild(f);
   }
-}
+};
+  
 
 function verDetalle(i) {
   detalleActual = datos[i];
