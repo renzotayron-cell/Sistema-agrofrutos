@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard SSOMA — Agrofrutos</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -154,8 +155,8 @@
     <div class="btns">
       <button class="btn btn-azul"  onclick="cargar()">&#8635; Actualizar</button>
       <button class="btn btn-claro" onclick="exportCSV()">&#8595; CSV</button>
-      <button class="btn btn-verde" onclick="exportPDF()">&#128196; PDF General</button>
-    </div>
+<button class="btn btn-verde" onclick="exportPDF()">&#128196; PDF Tabla</button>
+<button class="btn btn-verde" onclick="exportGraficos()">&#128202; PDF Graficos</button>    </div>
   </div>
 
   <div class="loader" id="loader"><div class="spin"></div><span>Cargando datos de Google Sheets...</span></div>
@@ -599,7 +600,70 @@ function exportCSV() {
   a.download='reportes-agrofrutos-'+new Date().toISOString().split('T')[0]+'.csv';
   a.click();
 }
+async function exportGraficos() {
+  const w = window.open('', '_blank');
+  const fechaHoy = new Date().toLocaleDateString('es-PE');
 
+  const graficos = [
+    { id: 'cLinea', titulo: 'Reportes por Periodo' },
+    { id: 'cDona',  titulo: 'Por Nivel de Riesgo'  },
+    { id: 'cTipo',  titulo: 'Por Tipo de Incidencia'},
+    { id: 'cArea',  titulo: 'Por Area'              },
+    { id: 'cEst',   titulo: 'Por Estado'            }
+  ];
+
+  let imagenes = '';
+  for (const g of graficos) {
+    const canvas = document.getElementById(g.id);
+    const img = canvas.toDataURL('image/png');
+    imagenes += `
+      <div class="grafico-wrap">
+        <h3>${g.titulo}</h3>
+        <img src="${img}" />
+      </div>`;
+  }
+
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Graficos SSOMA — Agrofrutos</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;font-size:11px;color:#1a202c;}
+      .btnreg{background:#1a472a;color:white;border:none;padding:7px 16px;border-radius:6px;font-size:10px;cursor:pointer;margin-bottom:16px;}
+      .header{border-bottom:2px solid #1a472a;padding-bottom:10px;margin-bottom:20px;}
+      .header h1{color:#1a472a;font-size:16px;margin:0 0 3px;}
+      .header p{color:#718096;font-size:10px;margin:0;}
+      .graficos{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+      .grafico-wrap{background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e2e8f0;}
+      .grafico-wrap h3{font-size:12px;color:#1a472a;margin-bottom:10px;}
+      .grafico-wrap img{width:100%;border-radius:4px;}
+      .grafico-wrap.full{grid-column:1/-1;}
+      .stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+      .s{border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 12px;text-align:center;min-width:80px;}
+      .s .n{font-size:18px;font-weight:800;color:#1a472a;}
+      .s .l{font-size:9px;color:#718096;}
+      .ft{margin-top:20px;font-size:9px;color:#a0aec0;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;}
+      @media print{.btnreg{display:none;} body{padding:10px;}}
+    </style>
+  </head><body>
+    <button class="btnreg" onclick="window.close()">&#8592; Regresar al Dashboard</button>
+    <div class="header">
+      <h1>Graficos de Incidencias — Agrofrutos Trading S.A.</h1>
+      <p>Generado por: ${user.nombre} &nbsp;|&nbsp; Fecha: ${fechaHoy} &nbsp;|&nbsp; Total reportes: ${datos.length}</p>
+    </div>
+    <div class="stats">
+      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r=>r.riesgo==='Alto').length}</div><div class="l">Alto</div></div>
+      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r=>r.riesgo==='Medio').length}</div><div class="l">Medio</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.riesgo==='Bajo').length}</div><div class="l">Bajo</div></div>
+      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r=>r.estado==='Abierto').length}</div><div class="l">Abiertos</div></div>
+      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r=>r.estado==='En Proceso').length}</div><div class="l">En Proceso</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.estado==='Cerrado').length}</div><div class="l">Cerrados</div></div>
+      <div class="s"><div class="n">${datos.length}</div><div class="l">Total</div></div>
+    </div>
+    <div class="graficos">${imagenes}</div>
+    <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 800);
+}
 function exportPDF() {
   if(!datos.length){ alert('No hay datos para exportar'); return; }
   const w=window.open('','_blank');
