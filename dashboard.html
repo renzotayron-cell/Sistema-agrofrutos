@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard SSOMA — Agrofrutos</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
@@ -32,6 +32,11 @@
     .btn-verde { background: #1a472a; color: white; }
     .btn-claro { background: #e8f5e9; color: #1a472a; border: 1px solid #c6f6d5; }
     .btn-azul  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+
+    /* Toast de notificacion */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1a472a; color: white; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #c53030; }
 
     .loader { display: none; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #2b6cb0; margin-bottom: 14px; align-items: center; gap: 10px; }
     .loader.on { display: flex; }
@@ -86,6 +91,9 @@
     .bc { background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; }
     .be { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
 
+    /* Boton deshabilitado mientras se guarda */
+    .ba:disabled { opacity: 0.5; cursor: not-allowed; }
+
     .empty { text-align: center; padding: 40px; color: #a0aec0; font-size: 14px; }
 
     /* MODAL BASE */
@@ -97,6 +105,7 @@
     .mbts { display: flex; gap: 8px; justify-content: flex-end; }
     .mcancel { padding: 8px 18px; border-radius: 7px; border: 1px solid #e2e8f0; background: white; font-size: 13px; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
     .mok { padding: 8px 18px; border-radius: 7px; border: none; background: #e53e3e; color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
+    .mok:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* MODAL DETALLE */
     .modal-det { background: white; border-radius: 14px; padding: 24px; width: 95%; max-width: 620px; max-height: 90vh; overflow-y: auto; }
@@ -123,6 +132,9 @@
   </style>
 </head>
 <body>
+
+<!-- Toast de notificacion -->
+<div class="toast" id="toast"></div>
 
 <header>
   <div class="hl">
@@ -155,8 +167,9 @@
     <div class="btns">
       <button class="btn btn-azul"  onclick="cargar()">&#8635; Actualizar</button>
       <button class="btn btn-claro" onclick="exportCSV()">&#8595; CSV</button>
-<button class="btn btn-verde" onclick="exportPDF()">&#128196; PDF Tabla</button>
-<button class="btn btn-verde" onclick="exportGraficos()">&#128202; PDF Graficos</button>    </div>
+      <button class="btn btn-verde" onclick="exportPDF()">&#128196; PDF Tabla</button>
+      <button class="btn btn-verde" onclick="exportGraficos()">&#128202; PDF Graficos</button>
+    </div>
   </div>
 
   <div class="loader" id="loader"><div class="spin"></div><span>Cargando datos de Google Sheets...</span></div>
@@ -250,7 +263,7 @@
     <p>Seguro que deseas eliminar este reporte? No se puede deshacer.</p>
     <div class="mbts">
       <button class="mcancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="mok" onclick="okEliminar()">Si, eliminar</button>
+      <button class="mok" id="btnOkEliminar" onclick="okEliminar()">Si, eliminar</button>
     </div>
   </div>
 </div>
@@ -269,20 +282,46 @@
     </div>
   </div>
 </div>
-<iframe name="hif" style="display:none;"></iframe>
+
 <footer>Sistema de Gestion de Incidencias &mdash; Agrofrutos Trading S.A. &copy; 2025</footer>
 
 <script>
+// =====================================================================
+// CONFIGURACION
+// =====================================================================
 const URL_API = 'https://script.google.com/macros/s/AKfycbx5nbOaFNkYHbph3lqO81nj4iCPXdiPTbCfo4V2N9kPDuyonJpEXtKyuKYVyFdLM84A/exec';
 
+// =====================================================================
+// SESION
+// =====================================================================
 const user = JSON.parse(sessionStorage.getItem('ssoma_user') || 'null');
 if (!user) window.location.href = 'login.html';
 document.getElementById('unombre').textContent = 'SSOMA: ' + user.nombre;
-document.getElementById('fechahoy').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('fechahoy').textContent = new Date().toLocaleDateString('es-PE', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
 
-let datos = [], idxDel = -1, detalleActual = null;
+// =====================================================================
+// ESTADO GLOBAL
+// =====================================================================
+let datos = [];
+let idxDel = -1;
+let detalleActual = null;
 let cL, cD, cT, cA, cE, chartsOk = false;
 
+// =====================================================================
+// TOAST NOTIFICACION
+// =====================================================================
+function toast(msg, tipo = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (tipo === 'error' ? ' error' : '');
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// =====================================================================
+// LIMPIEZA DE FECHAS Y HORAS
+// =====================================================================
 function limpiarFecha(f) {
   const s = String(f || '');
   if (s.includes('T')) return s.split('T')[0];
@@ -291,32 +330,27 @@ function limpiarFecha(f) {
 
 function limpiarHora(h) {
   const s = String(h || '');
-  if (s.includes('T')) {
+  if (s.includes('T') || s.includes('1899') || s.includes('1900')) {
     const d = new Date(s);
     if (!isNaN(d)) {
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-      return hh + ':' + mm;
-    }
-  }
-  if (s.includes('1899') || s.includes('1900')) {
-    const d = new Date(s);
-    if (!isNaN(d)) {
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-      return hh + ':' + mm;
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     }
   }
   return s.substring(0, 5);
 }
 
+// =====================================================================
+// CARGA DE DATOS
+// =====================================================================
 async function cargar() {
   document.getElementById('loader').classList.add('on');
   try {
     const r = await fetch(URL_API + '?nocache=' + Date.now());
     const j = await r.json();
     if (j.resultado === 'ok' && j.reportes) {
+      // ✅ FIX: guardamos _idx real que viene del servidor
       datos = j.reportes.map(r => ({
+        _idx:   r['_idx'],                          // indice real 0-based de Sheets
         fecha:  limpiarFecha(r.Fecha),
         hora:   limpiarHora(r.Hora),
         area:   String(r.Area || ''),
@@ -331,8 +365,9 @@ async function cargar() {
       document.getElementById('uptxt').textContent =
         'Actualizado: ' + new Date().toLocaleTimeString('es-PE') + ' — ' + datos.length + ' reportes cargados';
     }
-  } catch(e) {
-    document.getElementById('uptxt').textContent = 'Error al conectar. Reintentando...';
+  } catch (e) {
+    document.getElementById('uptxt').textContent = 'Error al conectar con el servidor.';
+    toast('Error al cargar datos. Revisa tu conexion.', 'error');
   }
   document.getElementById('loader').classList.remove('on');
   actualizarKPIs();
@@ -341,103 +376,120 @@ async function cargar() {
   else actualizarCharts();
 }
 
+// =====================================================================
+// KPIs
+// =====================================================================
 function actualizarKPIs() {
-  document.getElementById('k1').textContent = datos.filter(r=>r.riesgo==='Alto').length;
-  document.getElementById('k2').textContent = datos.filter(r=>r.riesgo==='Medio').length;
-  document.getElementById('k3').textContent = datos.filter(r=>r.estado==='Abierto').length;
-  document.getElementById('k4').textContent = datos.filter(r=>r.estado==='En Proceso').length;
-  document.getElementById('k5').textContent = datos.filter(r=>r.estado==='Cerrado').length;
+  document.getElementById('k1').textContent = datos.filter(r => r.riesgo === 'Alto').length;
+  document.getElementById('k2').textContent = datos.filter(r => r.riesgo === 'Medio').length;
+  document.getElementById('k3').textContent = datos.filter(r => r.estado === 'Abierto').length;
+  document.getElementById('k4').textContent = datos.filter(r => r.estado === 'En Proceso').length;
+  document.getElementById('k5').textContent = datos.filter(r => r.estado === 'Cerrado').length;
   document.getElementById('k6').textContent = datos.length;
 }
 
+// =====================================================================
+// DATOS PARA GRAFICOS DE LINEA
+// =====================================================================
 function d7() {
-  const lb=[], dt=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const s=d.toISOString().split('T')[0];
-    lb.push(d.toLocaleDateString('es-PE',{weekday:'short',day:'numeric'}));
-    dt.push(datos.filter(r=>r.fecha===s).length);
+  const lb = [], dt = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const s = d.toISOString().split('T')[0];
+    lb.push(d.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric' }));
+    dt.push(datos.filter(r => r.fecha === s).length);
   }
-  return {lb,dt};
+  return { lb, dt };
 }
 
 function d30() {
-  const lb=[], dt=[];
-  for(let i=29;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const s=d.toISOString().split('T')[0];
-    lb.push(d.getDate()+'/'+(d.getMonth()+1));
-    dt.push(datos.filter(r=>r.fecha===s).length);
+  const lb = [], dt = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const s = d.toISOString().split('T')[0];
+    lb.push(d.getDate() + '/' + (d.getMonth() + 1));
+    dt.push(datos.filter(r => r.fecha === s).length);
   }
-  return {lb,dt};
+  return { lb, dt };
 }
 
 function dMes() {
-  const lb=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const dt=Array(12).fill(0);
-  datos.forEach(r=>{if(r.fecha){const m=parseInt(r.fecha.split('-')[1])-1;if(m>=0&&m<12)dt[m]++;}});
-  return {lb,dt};
+  const lb = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const dt = Array(12).fill(0);
+  datos.forEach(r => {
+    if (r.fecha) {
+      const m = parseInt(r.fecha.split('-')[1]) - 1;
+      if (m >= 0 && m < 12) dt[m]++;
+    }
+  });
+  return { lb, dt };
 }
 
+// =====================================================================
+// INICIALIZAR GRAFICOS
+// =====================================================================
 function initCharts() {
-  const {lb,dt}=d7();
-  cL=new Chart(document.getElementById('cLinea'),{
-    type:'line',
-    data:{labels:lb,datasets:[{label:'Reportes',data:dt,borderColor:'#1a472a',backgroundColor:'rgba(26,71,42,0.08)',borderWidth:2,pointBackgroundColor:'#1a472a',pointRadius:4,tension:0.4,fill:true}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f4f8'}},x:{grid:{display:false}}}}
+  const { lb, dt } = d7();
+  cL = new Chart(document.getElementById('cLinea'), {
+    type: 'line',
+    data: { labels: lb, datasets: [{ label: 'Reportes', data: dt, borderColor: '#1a472a', backgroundColor: 'rgba(26,71,42,0.08)', borderWidth: 2, pointBackgroundColor: '#1a472a', pointRadius: 4, tension: 0.4, fill: true }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f4f8' } }, x: { grid: { display: false } } } }
   });
-  cD=new Chart(document.getElementById('cDona'),{
-    type:'doughnut',
-    data:{labels:['Alto','Medio','Bajo'],datasets:[{data:[datos.filter(r=>r.riesgo==='Alto').length,datos.filter(r=>r.riesgo==='Medio').length,datos.filter(r=>r.riesgo==='Bajo').length],backgroundColor:['#e53e3e','#dd6b20','#38a169'],borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'60%'}
+  cD = new Chart(document.getElementById('cDona'), {
+    type: 'doughnut',
+    data: { labels: ['Alto', 'Medio', 'Bajo'], datasets: [{ data: [datos.filter(r => r.riesgo === 'Alto').length, datos.filter(r => r.riesgo === 'Medio').length, datos.filter(r => r.riesgo === 'Bajo').length], backgroundColor: ['#e53e3e', '#dd6b20', '#38a169'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '60%' }
   });
-  const tipos=[...new Set(datos.map(r=>r.tipo).filter(Boolean))].slice(0,6);
-  cT=new Chart(document.getElementById('cTipo'),{
-    type:'bar',
-    data:{labels:tipos.length?tipos:['Sin datos'],datasets:[{data:tipos.length?tipos.map(t=>datos.filter(r=>r.tipo===t).length):[0],backgroundColor:'#2d6a4f',borderRadius:5}]},
-    options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
+  const tipos = [...new Set(datos.map(r => r.tipo).filter(Boolean))].slice(0, 6);
+  cT = new Chart(document.getElementById('cTipo'), {
+    type: 'bar',
+    data: { labels: tipos.length ? tipos : ['Sin datos'], datasets: [{ data: tipos.length ? tipos.map(t => datos.filter(r => r.tipo === t).length) : [0], backgroundColor: '#2d6a4f', borderRadius: 5 }] },
+    options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
   });
-  const areas=[...new Set(datos.map(r=>r.area).filter(Boolean))].slice(0,6);
-  cA=new Chart(document.getElementById('cArea'),{
-    type:'bar',
-    data:{labels:areas.length?areas:['Sin datos'],datasets:[{data:areas.length?areas.map(a=>datos.filter(r=>r.area===a).length):[0],backgroundColor:['#1a472a','#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2'],borderRadius:5}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{grid:{display:false},ticks:{font:{size:9}}}}}
+  const areas = [...new Set(datos.map(r => r.area).filter(Boolean))].slice(0, 6);
+  cA = new Chart(document.getElementById('cArea'), {
+    type: 'bar',
+    data: { labels: areas.length ? areas : ['Sin datos'], datasets: [{ data: areas.length ? areas.map(a => datos.filter(r => r.area === a).length) : [0], backgroundColor: ['#1a472a', '#2d6a4f', '#40916c', '#52b788', '#74c69d', '#95d5b2'], borderRadius: 5 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
   });
-  cE=new Chart(document.getElementById('cEst'),{
-    type:'pie',
-    data:{labels:['Abierto','En Proceso','Cerrado'],datasets:[{data:[datos.filter(r=>r.estado==='Abierto').length,datos.filter(r=>r.estado==='En Proceso').length,datos.filter(r=>r.estado==='Cerrado').length],backgroundColor:['#3182ce','#d69e2e','#38a169'],borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+  cE = new Chart(document.getElementById('cEst'), {
+    type: 'pie',
+    data: { labels: ['Abierto', 'En Proceso', 'Cerrado'], datasets: [{ data: [datos.filter(r => r.estado === 'Abierto').length, datos.filter(r => r.estado === 'En Proceso').length, datos.filter(r => r.estado === 'Cerrado').length], backgroundColor: ['#3182ce', '#d69e2e', '#38a169'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
   });
 }
 
 function actualizarCharts() {
-  const {lb,dt}=d7();
-  cL.data.labels=lb; cL.data.datasets[0].data=dt; cL.update();
-  cD.data.datasets[0].data=[datos.filter(r=>r.riesgo==='Alto').length,datos.filter(r=>r.riesgo==='Medio').length,datos.filter(r=>r.riesgo==='Bajo').length]; cD.update();
-  const tipos=[...new Set(datos.map(r=>r.tipo).filter(Boolean))].slice(0,6);
-  cT.data.labels=tipos.length?tipos:['Sin datos']; cT.data.datasets[0].data=tipos.length?tipos.map(t=>datos.filter(r=>r.tipo===t).length):[0]; cT.update();
-  const areas=[...new Set(datos.map(r=>r.area).filter(Boolean))].slice(0,6);
-  cA.data.labels=areas.length?areas:['Sin datos']; cA.data.datasets[0].data=areas.length?areas.map(a=>datos.filter(r=>r.area===a).length):[0]; cA.update();
-  cE.data.datasets[0].data=[datos.filter(r=>r.estado==='Abierto').length,datos.filter(r=>r.estado==='En Proceso').length,datos.filter(r=>r.estado==='Cerrado').length]; cE.update();
+  const { lb, dt } = d7();
+  cL.data.labels = lb; cL.data.datasets[0].data = dt; cL.update();
+  cD.data.datasets[0].data = [datos.filter(r => r.riesgo === 'Alto').length, datos.filter(r => r.riesgo === 'Medio').length, datos.filter(r => r.riesgo === 'Bajo').length]; cD.update();
+  const tipos = [...new Set(datos.map(r => r.tipo).filter(Boolean))].slice(0, 6);
+  cT.data.labels = tipos.length ? tipos : ['Sin datos']; cT.data.datasets[0].data = tipos.length ? tipos.map(t => datos.filter(r => r.tipo === t).length) : [0]; cT.update();
+  const areas = [...new Set(datos.map(r => r.area).filter(Boolean))].slice(0, 6);
+  cA.data.labels = areas.length ? areas : ['Sin datos']; cA.data.datasets[0].data = areas.length ? areas.map(a => datos.filter(r => r.area === a).length) : [0]; cA.update();
+  cE.data.datasets[0].data = [datos.filter(r => r.estado === 'Abierto').length, datos.filter(r => r.estado === 'En Proceso').length, datos.filter(r => r.estado === 'Cerrado').length]; cE.update();
 }
 
-function camTab(t,btn) {
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+function camTab(t, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  const d=t==='7d'?d7():t==='30d'?d30():dMes();
-  cL.data.labels=d.lb; cL.data.datasets[0].data=d.dt; cL.update();
+  const d = t === '7d' ? d7() : t === '30d' ? d30() : dMes();
+  cL.data.labels = d.lb; cL.data.datasets[0].data = d.dt; cL.update();
 }
 
+// =====================================================================
+// FILTROS Y TABLA
+// =====================================================================
 function filtrar() {
-  const a=document.getElementById('fArea').value;
-  const ri=document.getElementById('fRiesgo').value;
-  const es=document.getElementById('fEstado').value;
-  const fe=document.getElementById('fFecha').value;
-  const lista=datos.filter(r=>{
-    if(a && r.area!==a) return false;
-    if(ri && r.riesgo!==ri) return false;
-    if(es && r.estado!==es) return false;
-    if(fe && r.fecha!==fe) return false;
+  const a  = document.getElementById('fArea').value;
+  const ri = document.getElementById('fRiesgo').value;
+  const es = document.getElementById('fEstado').value;
+  const fe = document.getElementById('fFecha').value;
+  const lista = datos.filter(r => {
+    if (a  && r.area   !== a)  return false;
+    if (ri && r.riesgo !== ri) return false;
+    if (es && r.estado !== es) return false;
+    if (fe && r.fecha  !== fe) return false;
     return true;
   });
   renderTabla(lista);
@@ -445,121 +497,138 @@ function filtrar() {
 
 function renderTabla(lista) {
   document.getElementById('conteo').textContent = lista.length + ' reporte(s) — clic en una fila para ver detalle';
-  const tb=document.getElementById('tbody');
-  if(!lista.length){
-    tb.innerHTML='<tr><td colspan="9"><div class="empty">No hay reportes que mostrar</div></td></tr>';
+  const tb = document.getElementById('tbody');
+  if (!lista.length) {
+    tb.innerHTML = '<tr><td colspan="9"><div class="empty">No hay reportes que mostrar</div></td></tr>';
     return;
   }
-  tb.innerHTML='';
-  lista.slice().reverse().forEach(r=>{
-    const i=datos.indexOf(r);
-    const ec=(r.estado||'').toLowerCase().replace(/ /g,'-');
-    tb.innerHTML+=`<tr class="clickable" onclick="verDetalle(${i})">
-      <td><b>#${String(i+1).padStart(3,'0')}</b></td>
+  tb.innerHTML = '';
+  // Mostramos en orden inverso (mas reciente primero)
+  lista.slice().reverse().forEach(r => {
+    const i = datos.indexOf(r);
+    const num = String(i + 1).padStart(3, '0');
+    const ec = (r.estado || '').toLowerCase().replace(/ /g, '-');
+    tb.innerHTML += `<tr class="clickable" onclick="verDetalle(${i})">
+      <td><b>#${num}</b></td>
       <td>${r.fecha}</td>
       <td>${r.area}</td>
       <td>${r.tipo}</td>
-      <td style="max-width:150px;">${r.desc.substring(0,45)}${r.desc.length>45?'...':''}</td>
+      <td style="max-width:150px;">${r.desc.substring(0, 45)}${r.desc.length > 45 ? '...' : ''}</td>
       <td><span class="badge ${r.riesgo.toLowerCase()}">${r.riesgo}</span></td>
       <td>${r.quien}</td>
       <td><span class="badge ${ec}">${r.estado}</span></td>
       <td><div class="ac" onclick="event.stopPropagation()">
-        <button class="ba bp" onclick="cambiar(${i},'En Proceso')">En proceso</button>
-        <button class="ba bc" onclick="cambiar(${i},'Cerrado')">Cerrar</button>
+        <button class="ba bp" id="btn-ep-${i}" onclick="cambiar(${i},'En Proceso',this)">En proceso</button>
+        <button class="ba bc" id="btn-ce-${i}" onclick="cambiar(${i},'Cerrado',this)">Cerrar</button>
         <button class="ba be" onclick="abrirDel(${i})">Eliminar</button>
       </div></td>
     </tr>`;
   });
 }
 
-function cambiar(i, e) {
-  datos[i].estado = e;
-  actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts();
-  const f = document.createElement('form');
-  f.method = 'POST';
-  f.action = URL_API;
-  f.target = 'hif';
-  const inp = document.createElement('input');
-  inp.type = 'hidden';
-  inp.name = 'payload';
-  inp.value = JSON.stringify({ accion: 'actualizar_estado', fila: i, estado: e });
-  f.appendChild(inp);
-  document.body.appendChild(f);
-  f.submit();
-  document.body.removeChild(f);
+// =====================================================================
+// ✅ CAMBIAR ESTADO — usa fetch con _idx real
+// =====================================================================
+async function cambiar(i, nuevoEstado, btnEl) {
+  // Deshabilitamos botones de esa fila mientras se guarda
+  const btnEp = document.getElementById('btn-ep-' + i);
+  const btnCe = document.getElementById('btn-ce-' + i);
+  if (btnEp) btnEp.disabled = true;
+  if (btnCe) btnCe.disabled = true;
+
+  const idxSheet = datos[i]._idx; // ✅ indice real de Sheets
+  datos[i].estado = nuevoEstado;
+  actualizarKPIs();
+  filtrar();
+  if (chartsOk) actualizarCharts();
+
+  try {
+    await fetch(URL_API, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accion: 'actualizar_estado',
+        _idx: idxSheet,        // ✅ enviamos _idx real, no el indice local
+        estado: nuevoEstado
+      })
+    });
+    toast('Estado actualizado a "' + nuevoEstado + '" correctamente ✓');
+  } catch (err) {
+    console.error('Error al actualizar estado:', err);
+    toast('Error al guardar. Recarga la pagina.', 'error');
+  }
 }
 
-function abrirDel(i)  { idxDel=i; document.getElementById('mdel').classList.add('on'); }
-function cerrarModal() { document.getElementById('mdel').classList.remove('on'); idxDel=-1; }
-function okEliminar() {
-  if(idxDel >= 0) {
-    const fila = idxDel;
-    datos.splice(idxDel, 1);
-    actualizarKPIs(); filtrar(); if(chartsOk) actualizarCharts(); cerrarModal();
-    const f = document.createElement('form');
-    f.method = 'POST';
-    f.action = URL_API;
-    f.target = 'hif';
-    const inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = 'payload';
-    inp.value = JSON.stringify({ accion: 'eliminar', fila: fila });
-    f.appendChild(inp);
-    document.body.appendChild(f);
-    f.submit();
-    document.body.removeChild(f);
-  }
-};
-  
+// =====================================================================
+// ELIMINAR
+// =====================================================================
+function abrirDel(i) {
+  idxDel = i;
+  document.getElementById('mdel').classList.add('on');
+}
 
+function cerrarModal() {
+  document.getElementById('mdel').classList.remove('on');
+  idxDel = -1;
+}
+
+// ✅ ELIMINAR — usa fetch con _idx real
+async function okEliminar() {
+  if (idxDel < 0) return;
+
+  const btn = document.getElementById('btnOkEliminar');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+
+  const idxSheet = datos[idxDel]._idx; // ✅ guardamos _idx ANTES del splice
+  datos.splice(idxDel, 1);
+  actualizarKPIs();
+  filtrar();
+  if (chartsOk) actualizarCharts();
+  cerrarModal();
+
+  try {
+    await fetch(URL_API, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accion: 'eliminar',
+        _idx: idxSheet         // ✅ enviamos _idx real
+      })
+    });
+    toast('Reporte eliminado correctamente ✓');
+  } catch (err) {
+    console.error('Error al eliminar:', err);
+    toast('Error al eliminar en el servidor. Recarga la pagina.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Si, eliminar';
+}
+
+// =====================================================================
+// DETALLE
+// =====================================================================
 function verDetalle(i) {
   detalleActual = datos[i];
   const r = detalleActual;
-  const num = String(i+1).padStart(3,'0');
+  const num = String(i + 1).padStart(3, '0');
   document.getElementById('det-titulo').textContent = 'Reporte #' + num + ' — ' + r.area;
-  const ec = (r.estado||'').toLowerCase().replace(/ /g,'-');
+  const ec = (r.estado || '').toLowerCase().replace(/ /g, '-');
   document.getElementById('det-contenido').innerHTML = `
     <div class="det-grid">
-      <div class="det-campo">
-        <div class="det-lbl">Fecha</div>
-        <div class="det-val">${r.fecha}</div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Hora</div>
-        <div class="det-val">${r.hora || 'No registrada'}</div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Area</div>
-        <div class="det-val">${r.area}</div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Tipo de incidencia</div>
-        <div class="det-val">${r.tipo}</div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Nivel de riesgo</div>
-        <div class="det-val"><span class="badge ${r.riesgo.toLowerCase()}" style="font-size:12px;">${r.riesgo}</span></div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Estado actual</div>
-        <div class="det-val"><span class="badge ${ec}" style="font-size:12px;">${r.estado}</span></div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Reportado por</div>
-        <div class="det-val">${r.quien}</div>
-      </div>
-      <div class="det-campo">
-        <div class="det-lbl">Persona lesionada</div>
-        <div class="det-val">${r.lesion || 'No'}</div>
-      </div>
-      <div class="det-campo full">
-        <div class="det-lbl">Descripcion detallada</div>
-        <div class="det-val normal">${r.desc || 'Sin descripcion'}</div>
-      </div>
-      <div class="det-campo full">
-        <div class="det-lbl">Accion inmediata tomada</div>
-        <div class="det-val normal">${r.accion || 'No registrada'}</div>
-      </div>
+      <div class="det-campo"><div class="det-lbl">Fecha</div><div class="det-val">${r.fecha}</div></div>
+      <div class="det-campo"><div class="det-lbl">Hora</div><div class="det-val">${r.hora || 'No registrada'}</div></div>
+      <div class="det-campo"><div class="det-lbl">Area</div><div class="det-val">${r.area}</div></div>
+      <div class="det-campo"><div class="det-lbl">Tipo de incidencia</div><div class="det-val">${r.tipo}</div></div>
+      <div class="det-campo"><div class="det-lbl">Nivel de riesgo</div><div class="det-val"><span class="badge ${r.riesgo.toLowerCase()}" style="font-size:12px;">${r.riesgo}</span></div></div>
+      <div class="det-campo"><div class="det-lbl">Estado actual</div><div class="det-val"><span class="badge ${ec}" style="font-size:12px;">${r.estado}</span></div></div>
+      <div class="det-campo"><div class="det-lbl">Reportado por</div><div class="det-val">${r.quien}</div></div>
+      <div class="det-campo"><div class="det-lbl">Persona lesionada</div><div class="det-val">${r.lesion || 'No'}</div></div>
+      <div class="det-campo full"><div class="det-lbl">Descripcion detallada</div><div class="det-val normal">${r.desc || 'Sin descripcion'}</div></div>
+      <div class="det-campo full"><div class="det-lbl">Accion inmediata tomada</div><div class="det-val normal">${r.accion || 'No registrada'}</div></div>
     </div>`;
   document.getElementById('mdet').classList.add('on');
 }
@@ -569,13 +638,16 @@ function cerrarDetalle() {
   detalleActual = null;
 }
 
+// =====================================================================
+// PDF DETALLE
+// =====================================================================
 function pdfDetalle() {
-  if(!detalleActual) return;
+  if (!detalleActual) return;
   const r = detalleActual;
-  const w = window.open('','_blank');
+  const w = window.open('', '_blank');
   const fechaHoy = new Date().toLocaleDateString('es-PE');
   const idx = datos.indexOf(r);
-  const num = String(idx+1).padStart(3,'0');
+  const num = String(idx + 1).padStart(3, '0');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <title>Reporte #${num} — Agrofrutos</title>
     <style>
@@ -608,7 +680,7 @@ function pdfDetalle() {
       <div class="campo"><div class="lbl">Area</div><div class="val">${r.area}</div></div>
       <div class="campo"><div class="lbl">Tipo de incidencia</div><div class="val">${r.tipo}</div></div>
       <div class="campo"><div class="lbl">Nivel de riesgo</div><div class="val"><span class="badge ${r.riesgo.toLowerCase()}">${r.riesgo}</span></div></div>
-      <div class="campo"><div class="lbl">Estado</div><div class="val"><span class="badge ${(r.estado||'').toLowerCase().replace(/ /g,'-')}">${r.estado}</span></div></div>
+      <div class="campo"><div class="lbl">Estado</div><div class="val"><span class="badge ${(r.estado || '').toLowerCase().replace(/ /g, '-')}">${r.estado}</span></div></div>
       <div class="campo"><div class="lbl">Reportado por</div><div class="val">${r.quien}</div></div>
       <div class="campo"><div class="lbl">Persona lesionada</div><div class="val">${r.lesion || 'No'}</div></div>
       <div class="campo full"><div class="lbl">Descripcion detallada</div><div class="val normal">${r.desc || 'Sin descripcion'}</div></div>
@@ -617,26 +689,32 @@ function pdfDetalle() {
     <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
   </body></html>`);
   w.document.close();
-  setTimeout(()=>w.print(), 800);
+  setTimeout(() => w.print(), 800);
 }
 
+// =====================================================================
+// EXPORTAR CSV
+// =====================================================================
 function exportCSV() {
-  if(!datos.length){ alert('No hay datos para exportar'); return; }
-  const h=['ID','Fecha','Hora','Area','Tipo','Descripcion','Riesgo','Reportado_por','Lesionado','Accion','Estado'];
-  const rows=datos.map((r,i)=>[
-    '#'+String(i+1).padStart(3,'0'),r.fecha,r.hora,r.area,r.tipo,
-    '"'+r.desc.replace(/"/g,"'")+'"',r.riesgo,r.quien,r.lesion,r.accion,r.estado
+  if (!datos.length) { alert('No hay datos para exportar'); return; }
+  const h = ['ID', 'Fecha', 'Hora', 'Area', 'Tipo', 'Descripcion', 'Riesgo', 'Reportado_por', 'Lesionado', 'Accion', 'Estado'];
+  const rows = datos.map((r, i) => [
+    '#' + String(i + 1).padStart(3, '0'), r.fecha, r.hora, r.area, r.tipo,
+    '"' + r.desc.replace(/"/g, "'") + '"', r.riesgo, r.quien, r.lesion, r.accion, r.estado
   ]);
-  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='reportes-agrofrutos-'+new Date().toISOString().split('T')[0]+'.csv';
+  const csv = [h, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+  a.download = 'reportes-agrofrutos-' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
 }
+
+// =====================================================================
+// EXPORTAR PDF GRAFICOS
+// =====================================================================
 async function exportGraficos() {
   const w = window.open('', '_blank');
   const fechaHoy = new Date().toLocaleDateString('es-PE');
-
   const graficos = [
     { id: 'cLinea', titulo: 'Reportes por Periodo' },
     { id: 'cDona',  titulo: 'Por Nivel de Riesgo'  },
@@ -644,18 +722,12 @@ async function exportGraficos() {
     { id: 'cArea',  titulo: 'Por Area'              },
     { id: 'cEst',   titulo: 'Por Estado'            }
   ];
-
   let imagenes = '';
   for (const g of graficos) {
     const canvas = document.getElementById(g.id);
     const img = canvas.toDataURL('image/png');
-    imagenes += `
-      <div class="grafico-wrap">
-        <h3>${g.titulo}</h3>
-        <img src="${img}" />
-      </div>`;
+    imagenes += `<div class="grafico-wrap"><h3>${g.titulo}</h3><img src="${img}" /></div>`;
   }
-
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <title>Graficos SSOMA — Agrofrutos</title>
     <style>
@@ -668,7 +740,6 @@ async function exportGraficos() {
       .grafico-wrap{background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e2e8f0;}
       .grafico-wrap h3{font-size:12px;color:#1a472a;margin-bottom:10px;}
       .grafico-wrap img{width:100%;max-height:200px;object-fit:contain;border-radius:4px;}
-      .grafico-wrap.full{grid-column:1/-1;}
       .stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
       .s{border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 12px;text-align:center;min-width:80px;}
       .s .n{font-size:18px;font-weight:800;color:#1a472a;}
@@ -683,12 +754,12 @@ async function exportGraficos() {
       <p>Generado por: ${user.nombre} &nbsp;|&nbsp; Fecha: ${fechaHoy} &nbsp;|&nbsp; Total reportes: ${datos.length}</p>
     </div>
     <div class="stats">
-      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r=>r.riesgo==='Alto').length}</div><div class="l">Alto</div></div>
-      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r=>r.riesgo==='Medio').length}</div><div class="l">Medio</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.riesgo==='Bajo').length}</div><div class="l">Bajo</div></div>
-      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r=>r.estado==='Abierto').length}</div><div class="l">Abiertos</div></div>
-      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r=>r.estado==='En Proceso').length}</div><div class="l">En Proceso</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.estado==='Cerrado').length}</div><div class="l">Cerrados</div></div>
+      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r => r.riesgo === 'Alto').length}</div><div class="l">Alto</div></div>
+      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r => r.riesgo === 'Medio').length}</div><div class="l">Medio</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.riesgo === 'Bajo').length}</div><div class="l">Bajo</div></div>
+      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r => r.estado === 'Abierto').length}</div><div class="l">Abiertos</div></div>
+      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r => r.estado === 'En Proceso').length}</div><div class="l">En Proceso</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.estado === 'Cerrado').length}</div><div class="l">Cerrados</div></div>
       <div class="s"><div class="n">${datos.length}</div><div class="l">Total</div></div>
     </div>
     <div class="graficos">${imagenes}</div>
@@ -697,13 +768,17 @@ async function exportGraficos() {
   w.document.close();
   setTimeout(() => { w.document.body.style.zoom = '0.75'; w.print(); }, 800);
 }
+
+// =====================================================================
+// EXPORTAR PDF TABLA
+// =====================================================================
 function exportPDF() {
-  if(!datos.length){ alert('No hay datos para exportar'); return; }
-  const w=window.open('','_blank');
-  const fechaHoy=new Date().toLocaleDateString('es-PE');
-  const filas=datos.map((r,i)=>`
+  if (!datos.length) { alert('No hay datos para exportar'); return; }
+  const w = window.open('', '_blank');
+  const fechaHoy = new Date().toLocaleDateString('es-PE');
+  const filas = datos.map((r, i) => `
     <tr>
-      <td>#${String(i+1).padStart(3,'0')}</td>
+      <td>#${String(i + 1).padStart(3, '0')}</td>
       <td>${r.fecha}</td><td>${r.hora}</td><td>${r.area}</td>
       <td>${r.tipo}</td><td>${r.desc}</td><td>${r.riesgo}</td>
       <td>${r.quien}</td><td>${r.lesion}</td><td>${r.estado}</td>
@@ -731,12 +806,12 @@ function exportPDF() {
     <h1>Reporte General de Incidencias — Agrofrutos Trading S.A.</h1>
     <h2>Generado por: ${user.nombre} | Fecha: ${fechaHoy} | Total: ${datos.length} reportes</h2>
     <div class="stats">
-      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r=>r.riesgo==='Alto').length}</div><div class="l">Alto</div></div>
-      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r=>r.riesgo==='Medio').length}</div><div class="l">Medio</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.riesgo==='Bajo').length}</div><div class="l">Bajo</div></div>
-      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r=>r.estado==='Abierto').length}</div><div class="l">Abiertos</div></div>
-      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r=>r.estado==='En Proceso').length}</div><div class="l">En Proceso</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r=>r.estado==='Cerrado').length}</div><div class="l">Cerrados</div></div>
+      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r => r.riesgo === 'Alto').length}</div><div class="l">Alto</div></div>
+      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r => r.riesgo === 'Medio').length}</div><div class="l">Medio</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.riesgo === 'Bajo').length}</div><div class="l">Bajo</div></div>
+      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r => r.estado === 'Abierto').length}</div><div class="l">Abiertos</div></div>
+      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r => r.estado === 'En Proceso').length}</div><div class="l">En Proceso</div></div>
+      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.estado === 'Cerrado').length}</div><div class="l">Cerrados</div></div>
       <div class="s"><div class="n">${datos.length}</div><div class="l">Total</div></div>
     </div>
     <table>
@@ -746,11 +821,20 @@ function exportPDF() {
     <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
   </body></html>`);
   w.document.close();
-  setTimeout(()=>w.print(), 800);
+  setTimeout(() => w.print(), 800);
 }
 
-function cerrarSesion() { sessionStorage.removeItem('ssoma_user'); window.location.href='login.html'; }
+// =====================================================================
+// SESION
+// =====================================================================
+function cerrarSesion() {
+  sessionStorage.removeItem('ssoma_user');
+  window.location.href = 'login.html';
+}
 
+// =====================================================================
+// INICIO
+// =====================================================================
 cargar();
 setInterval(cargar, 30000);
 </script>
