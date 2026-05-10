@@ -1,277 +1,841 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SSOMA — Acceso Administrativo</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      background: #1a472a;
-      color: white;
-      padding: 14px 32px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    header .logo {
-      width: 40px; height: 40px;
-      background: #2d6a4f;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-    }
-    header h1 { font-size: 16px; font-weight: 600; }
-    header p  { font-size: 12px; opacity: 0.8; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .login-wrap {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 16px;
-    }
-    .login-card {
-      background: white;
-      border-radius: 16px;
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 420px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
-    .login-icon {
-      width: 64px; height: 64px;
-      background: #e8f5e9;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
-      margin: 0 auto 20px;
-    }
-    .login-card h2 {
-      text-align: center;
-      font-size: 20px;
-      font-weight: 600;
-      color: #1a472a;
-      margin-bottom: 6px;
-    }
-    .login-card p.sub {
-      text-align: center;
-      font-size: 13px;
-      color: #718096;
-      margin-bottom: 28px;
-    }
-    .badge-ssoma {
-      display: block;
-      text-align: center;
-      background: #e8f5e9;
-      color: #1a472a;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 16px;
-      border-radius: 20px;
-      margin-bottom: 28px;
-      letter-spacing: 0.05em;
-    }
-    .field { margin-bottom: 18px; }
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #4a5568;
-      margin-bottom: 6px;
-    }
-    .field input {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #2d3748;
-      outline: none;
-      transition: border-color 0.2s;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .field input:focus { border-color: #2d6a4f; }
-    .btn-login {
-      width: 100%;
-      background: #1a472a;
-      color: white;
-      border: none;
-      padding: 13px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background 0.2s;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .btn-login:hover { background: #2d6a4f; }
-    .error-msg {
-      display: none;
-      background: #fff5f5;
-      color: #c53030;
-      border: 1px solid #fed7d7;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .usuarios-info {
-      margin-top: 28px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 20px;
-    }
-    .usuarios-info p {
-      font-size: 12px;
-      color: #a0aec0;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    .user-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .user-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      background: #f7fafc;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid #e2e8f0;
-      transition: background 0.15s;
-    }
-    .user-item:hover { background: #edf2f7; }
-    .user-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: white;
-    }
-    .user-item .u-name { font-size: 13px; font-weight: 600; color: #2d3748; }
-    .user-item .u-role { font-size: 11px; color: #718096; }
-    footer {
-      background: #1a472a;
-      color: rgba(255,255,255,0.6);
-      text-align: center;
-      padding: 14px;
-      font-size: 12px;
-    }
-  </style>
+<title>SSOMA | Login Seguro</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+:root{
+  --primary:#163d2a;
+  --primary-light:#1f5a3c;
+  --secondary:#2d6a4f;
+  --text:#1e293b;
+  --gray:#64748b;
+  --border:#dbe4ea;
+}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+
+  background:
+  linear-gradient(
+    135deg,
+    #edf7f1,
+    #eef4ff
+  );
+
+  min-height:100vh;
+
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===================================
+   HEADER
+=================================== */
+
+header{
+  background:var(--primary);
+
+  color:white;
+
+  padding:16px 30px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  box-shadow:
+  0 2px 12px rgba(0,0,0,.08);
+}
+
+.logo{
+  width:50px;
+  height:50px;
+
+  border-radius:14px;
+
+  background:
+  rgba(255,255,255,.12);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:24px;
+}
+
+header h1{
+  font-size:17px;
+  font-weight:600;
+}
+
+header p{
+  font-size:12px;
+  opacity:.8;
+}
+
+/* ===================================
+   MAIN
+=================================== */
+
+.main{
+  flex:1;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  padding:40px 20px;
+}
+
+.login-card{
+  width:100%;
+  max-width:440px;
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:42px 35px;
+
+  border:1px solid #e8eef3;
+
+  box-shadow:
+  0 15px 40px rgba(0,0,0,.08);
+
+  animation:fade .4s ease;
+}
+
+@keyframes fade{
+
+  from{
+    opacity:0;
+    transform:translateY(15px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+}
+
+.login-icon{
+  width:82px;
+  height:82px;
+
+  background:#dcfce7;
+
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:auto;
+
+  font-size:36px;
+
+  margin-bottom:20px;
+}
+
+.login-card h2{
+  text-align:center;
+
+  color:var(--primary);
+
+  font-size:25px;
+
+  margin-bottom:8px;
+}
+
+.sub{
+  text-align:center;
+
+  color:var(--gray);
+
+  font-size:13px;
+
+  margin-bottom:26px;
+}
+
+.badge{
+  display:block;
+
+  width:max-content;
+
+  margin:auto;
+
+  background:#dcfce7;
+
+  color:var(--primary);
+
+  padding:8px 18px;
+
+  border-radius:40px;
+
+  font-size:11px;
+
+  font-weight:700;
+
+  letter-spacing:.08em;
+
+  margin-bottom:32px;
+}
+
+/* ===================================
+   ERROR
+=================================== */
+
+.error{
+  display:none;
+
+  background:#fef2f2;
+
+  border:1px solid #fecaca;
+
+  color:#b91c1c;
+
+  padding:12px;
+
+  border-radius:10px;
+
+  font-size:13px;
+
+  text-align:center;
+
+  margin-bottom:18px;
+}
+
+.shake{
+  animation:shake .25s;
+}
+
+@keyframes shake{
+
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+
+}
+
+/* ===================================
+   FORM
+=================================== */
+
+.field{
+  margin-bottom:18px;
+}
+
+.field label{
+  display:block;
+
+  margin-bottom:7px;
+
+  font-size:13px;
+
+  font-weight:600;
+
+  color:#334155;
+}
+
+.input-wrap{
+  position:relative;
+}
+
+.field input{
+  width:100%;
+
+  padding:13px 14px;
+
+  border-radius:10px;
+
+  border:1.5px solid var(--border);
+
+  outline:none;
+
+  font-size:14px;
+
+  transition:.2s;
+}
+
+.field input:focus{
+
+  border-color:var(--secondary);
+
+  box-shadow:
+  0 0 0 4px rgba(45,106,79,.08);
+
+}
+
+.toggle-password{
+  position:absolute;
+
+  right:12px;
+  top:50%;
+
+  transform:translateY(-50%);
+
+  cursor:pointer;
+
+  font-size:18px;
+
+  user-select:none;
+}
+
+/* ===================================
+   BUTTON
+=================================== */
+
+.btn{
+  width:100%;
+
+  border:none;
+
+  background:var(--primary);
+
+  color:white;
+
+  padding:14px;
+
+  border-radius:12px;
+
+  font-size:15px;
+
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+  margin-top:5px;
+}
+
+.btn:hover{
+  background:var(--primary-light);
+}
+
+.btn:disabled{
+  opacity:.7;
+  cursor:not-allowed;
+}
+
+/* ===================================
+   USERS
+=================================== */
+
+.users{
+  margin-top:28px;
+
+  border-top:1px solid #edf2f7;
+
+  padding-top:24px;
+}
+
+.users p{
+  text-align:center;
+
+  color:#94a3b8;
+
+  font-size:12px;
+
+  margin-bottom:14px;
+}
+
+.user-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:11px 13px;
+
+  border-radius:14px;
+
+  background:#f8fafc;
+
+  border:1px solid #e2e8f0;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.user:hover{
+
+  background:#f1f5f9;
+
+  transform:translateY(-2px);
+
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:white;
+
+  font-size:13px;
+  font-weight:bold;
+}
+
+.name{
+  font-size:13px;
+  font-weight:600;
+  color:#1e293b;
+}
+
+.role{
+  font-size:11px;
+  color:#64748b;
+}
+
+/* ===================================
+   FOOTER
+=================================== */
+
+footer{
+  background:var(--primary);
+
+  color:rgba(255,255,255,.7);
+
+  text-align:center;
+
+  padding:14px;
+
+  font-size:12px;
+}
+
+</style>
 </head>
 <body>
 
+<!-- ===================================
+     HEADER
+=================================== -->
+
 <header>
-  <button onclick="history.back()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:white; padding:7px 14px; border-radius:8px; font-size:13px; cursor:pointer; margin-right:8px;">← Regresar</button>
-  <div class="logo">🌿</div>
+
+  <div class="logo">🛡️</div>
+
   <div>
-    <h1>Sistema de Gestión de Incidencias y Riesgos</h1>
+    <h1>Sistema SSOMA</h1>
     <p>Agrofrutos Trading S.A.</p>
   </div>
+
 </header>
 
-<div class="login-wrap">
-  <div class="login-card">
-    <div class="login-icon">🛡️</div>
-    <h2>Acceso SSOMA</h2>
-    <p class="sub">Panel exclusivo para personal autorizado</p>
-    <span class="badge-ssoma">ÁREA DE SEGURIDAD Y SALUD OCUPACIONAL</span>
+<!-- ===================================
+     MAIN
+=================================== -->
 
-    <div class="error-msg" id="error-msg">
-      Usuario o contraseña incorrectos. Intenta nuevamente.
-    </div>
+<div class="main">
 
-    <div class="field">
-      <label>Usuario</label>
-      <input type="text" id="usuario" placeholder="Ingresa tu usuario" autocomplete="username" />
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
-    </div>
-    <button class="btn-login" onclick="iniciarSesion()">Ingresar al Sistema</button>
+<div class="login-card">
 
-    <div class="usuarios-info">
-      <p>Acceso rápido — clic para autocompletar:</p>
-      <div class="user-list">
-        <div class="user-item" onclick="autocompletar('jefe.ssoma','ssoma2025')">
-          <div class="user-avatar" style="background:#1a472a;">JS</div>
-          <div>
-            <div class="u-name">Jefe SSOMA</div>
-            <div class="u-role">Administrador principal</div>
-          </div>
-        </div>
-        <div class="user-item" onclick="autocompletar('asistente1','asist2025')">
-          <div class="user-avatar" style="background:#2d6a4f;">A1</div>
-          <div>
-            <div class="u-name">Asistente SSOMA 1</div>
-            <div class="u-role">Acceso completo</div>
-          </div>
-        </div>
-        <div class="user-item" onclick="autocompletar('asistente2','asist2025')">
-          <div class="user-avatar" style="background:#40916c;">A2</div>
-          <div>
-            <div class="u-name">Asistente SSOMA 2</div>
-            <div class="u-role">Acceso completo</div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="login-icon">
+    🌿
   </div>
+
+  <h2>Acceso Administrativo</h2>
+
+  <p class="sub">
+    Solo personal autorizado
+  </p>
+
+  <span class="badge">
+    SEGURIDAD Y SALUD OCUPACIONAL
+  </span>
+
+  <!-- ERROR -->
+
+  <div class="error" id="error">
+    Usuario o contraseña incorrectos
+  </div>
+
+  <!-- USUARIO -->
+
+  <div class="field">
+
+    <label>Usuario</label>
+
+    <input
+      type="text"
+      id="usuario"
+      placeholder="Ingresa tu usuario"
+    >
+
+  </div>
+
+  <!-- PASSWORD -->
+
+  <div class="field">
+
+    <label>Contraseña</label>
+
+    <div class="input-wrap">
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Ingresa tu contraseña"
+      >
+
+      <span
+        class="toggle-password"
+        id="togglePassword"
+      >
+        👁️
+      </span>
+
+    </div>
+
+  </div>
+
+  <!-- BOTON -->
+
+  <button class="btn" id="btnLogin">
+    Ingresar al Sistema
+  </button>
+
+  <!-- USUARIOS -->
+
+  <div class="users">
+
+    <p>Acceso rápido</p>
+
+    <div class="user-list">
+
+      <!-- JEFE SSOMA -->
+
+      <div
+      class="user"
+      data-user="SERGIO_BRAVO"
+      data-pass="Sergio2025">
+
+        <div
+        class="avatar"
+        style="background:#163d2a;">
+          SB
+        </div>
+
+        <div>
+          <div class="name">
+            JEFE DE SSOMA
+          </div>
+
+          <div class="role">
+            SERGIO BRAVO
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUPERVISORA -->
+
+      <div
+      class="user"
+      data-user="SARAI_RIVERA"
+      data-pass="Sarai2025">
+
+        <div
+        class="avatar"
+        style="background:#2d6a4f;">
+          SR
+        </div>
+
+        <div>
+          <div class="name">
+            SUPERVISORA DE SSOMA
+          </div>
+
+          <div class="role">
+            SARAI RIVERA
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
+</div>
+
+<!-- ===================================
+     FOOTER
+=================================== -->
+
 <footer>
-  Sistema de Gestión de Incidencias — Agrofrutos Trading S.A. &copy; 2025
+Sistema de Gestión de Incidencias © 2025
 </footer>
 
+<!-- ===================================
+     SCRIPT
+=================================== -->
+
 <script>
-  const usuarios = [
-    { usuario: 'jefe.ssoma',  password: 'ssoma2025', nombre: 'Jefe SSOMA',        rol: 'Administrador' },
-    { usuario: 'asistente1',  password: 'asist2025', nombre: 'Asistente SSOMA 1', rol: 'Asistente' },
-    { usuario: 'asistente2',  password: 'asist2025', nombre: 'Asistente SSOMA 2', rol: 'Asistente' },
-  ];
 
-  function autocompletar(u, p) {
-    document.getElementById('usuario').value  = u;
-    document.getElementById('password').value = p;
-    document.getElementById('usuario').focus();
+/* ===================================
+   USUARIOS
+=================================== */
+
+const usuarios = [
+
+  {
+    usuario:'SERGIO_BRAVO',
+    password:'Sergio2025',
+    nombre:'JEFE DE SSOMA',
+    rol:'Administrador Principal'
+  },
+
+  {
+    usuario:'SARAI_RIVERA',
+    password:'Sarai2025',
+    nombre:'SUPERVISORA DE SSOMA',
+    rol:'Supervisora General'
   }
 
-  function iniciarSesion() {
-    const u = document.getElementById('usuario').value.trim();
-    const p = document.getElementById('password').value.trim();
-    const found = usuarios.find(x => x.usuario === u && x.password === p);
+];
 
-    if (found) {
-      sessionStorage.setItem('ssoma_user', JSON.stringify(found));
-      window.location.href = 'dashboard.html';
-    } else {
-      document.getElementById('error-msg').style.display = 'block';
-      document.getElementById('password').value = '';
+/* ===================================
+   ELEMENTOS
+=================================== */
+
+const usuarioInput =
+document.getElementById('usuario');
+
+const passwordInput =
+document.getElementById('password');
+
+const btnLogin =
+document.getElementById('btnLogin');
+
+const errorBox =
+document.getElementById('error');
+
+const togglePassword =
+document.getElementById('togglePassword');
+
+/* ===================================
+   MOSTRAR PASSWORD
+=================================== */
+
+togglePassword.addEventListener(
+'click',()=>{
+
+  const type =
+  passwordInput.type === 'password'
+  ? 'text'
+  : 'password';
+
+  passwordInput.type = type;
+
+  togglePassword.textContent =
+  type === 'password'
+  ? '👁️'
+  : '🙈';
+
+});
+
+/* ===================================
+   LOGIN
+=================================== */
+
+function login(){
+
+  const usuario =
+  usuarioInput.value.trim();
+
+  const password =
+  passwordInput.value.trim();
+
+  /* VALIDAR CAMPOS */
+
+  if(usuario === '' || password === ''){
+
+    mostrarError(
+      'Completa todos los campos'
+    );
+
+    return;
+  }
+
+  /* LOADING */
+
+  btnLogin.disabled = true;
+
+  btnLogin.textContent =
+  'Verificando...';
+
+  /* SIMULACION LOGIN */
+
+  setTimeout(()=>{
+
+    const encontrado =
+    usuarios.find(u =>
+
+      u.usuario === usuario &&
+      u.password === password
+
+    );
+
+    if(encontrado){
+
+      /* GUARDAR SESION */
+
+      sessionStorage.setItem(
+
+        'ssoma_user',
+
+        JSON.stringify({
+
+          usuario:
+          encontrado.usuario,
+
+          nombre:
+          encontrado.nombre,
+
+          rol:
+          encontrado.rol
+
+        })
+
+      );
+
+      /* REDIRECCION */
+
+      window.location.href =
+      'dashboard.html';
+
+    }else{
+
+      mostrarError(
+        'Credenciales incorrectas'
+      );
+
+      passwordInput.value = '';
+
+      passwordInput.focus();
+
     }
+
+    btnLogin.disabled = false;
+
+    btnLogin.textContent =
+    'Ingresar al Sistema';
+
+  },1000);
+
+}
+
+/* ===================================
+   ERROR
+=================================== */
+
+function mostrarError(msg){
+
+  errorBox.style.display =
+  'block';
+
+  errorBox.textContent = msg;
+
+  errorBox.classList.remove(
+    'shake'
+  );
+
+  void errorBox.offsetWidth;
+
+  errorBox.classList.add(
+    'shake'
+  );
+
+}
+
+/* ===================================
+   ENTER
+=================================== */
+
+document.querySelector('.login-card')
+.addEventListener('keydown',e=>{
+
+  if(e.key === 'Enter'){
+
+    login();
+
   }
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') iniciarSesion();
+});
+
+/* ===================================
+   BOTON LOGIN
+=================================== */
+
+btnLogin.addEventListener(
+  'click',
+  login
+);
+
+/* ===================================
+   AUTOCOMPLETAR
+=================================== */
+
+document.querySelectorAll('.user')
+.forEach(user=>{
+
+  user.addEventListener('click',()=>{
+
+    usuarioInput.value =
+    user.dataset.user;
+
+    passwordInput.value =
+    user.dataset.pass;
+
+    usuarioInput.focus();
+
   });
 
-  if (sessionStorage.getItem('ssoma_user')) {
-    window.location.href = 'dashboard.html';
-  }
+});
+
+/* ===================================
+   VERIFICAR SESION
+=================================== */
+
+if(sessionStorage.getItem(
+  'ssoma_user'
+)){
+
+  window.location.href =
+  'dashboard.html';
+
+}
+
 </script>
+
 </body>
 </html>
