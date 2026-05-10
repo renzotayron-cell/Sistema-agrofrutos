@@ -631,10 +631,10 @@ async function exportGraficos() {
       .header{border-bottom:2px solid #1a472a;padding-bottom:10px;margin-bottom:20px;}
       .header h1{color:#1a472a;font-size:16px;margin:0 0 3px;}
       .header p{color:#718096;font-size:10px;margin:0;}
-      .graficos{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+      .graficos{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:0 auto;}
       .grafico-wrap{background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e2e8f0;}
       .grafico-wrap h3{font-size:12px;color:#1a472a;margin-bottom:10px;}
-      .grafico-wrap img{width:100%;border-radius:4px;}
+      .grafico-wrap img{width:100%;max-height:200px;object-fit:contain;border-radius:4px;}
       .grafico-wrap.full{grid-column:1/-1;}
       .stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
       .s{border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 12px;text-align:center;min-width:80px;}
@@ -662,7 +662,7 @@ async function exportGraficos() {
     <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
   </body></html>`);
   w.document.close();
-  setTimeout(() => w.print(), 800);
+  setTimeout(() => { w.document.body.style.zoom = '0.75'; w.print(); }, 800);
 }
 function exportPDF() {
   if(!datos.length){ alert('No hay datos para exportar'); return; }
