@@ -195,7 +195,6 @@ td.desc { max-width:220px; word-break:break-word; }
     </div>
     <div class="top-bar-btns">
       <button class="btn btn-outline" onclick="cargarDatos()">🔄 Actualizar</button>
-      <button class="btn btn-outline" onclick="exportarCSV()">⬇ CSV</button>
       <button class="btn btn-dark"    onclick="window.print()">🖨 Imprimir</button>
     </div>
   </div>
@@ -283,7 +282,9 @@ td.desc { max-width:220px; word-break:break-word; }
         <option value="">Todos los estados</option>
         <option>Abierto</option><option>En Proceso</option><option>Cerrado</option>
       </select>
+      <button class="btn btn-outline" onclick="exportarCSVFiltrado()" title="Descarga solo los registros visibles según los filtros activos" style="white-space:nowrap;">⬇ Descargar CSV</button>
     </div>
+    <p id="csv-info" style="font-size:12px; color:#6b7280; margin-bottom:10px;"></p>
     <div style="overflow:auto;">
       <table>
         <thead>
@@ -384,6 +385,21 @@ function renderTabla() {
     const mE    = !estado || r.Estado === estado;
     return match && mR && mE;
   });
+
+  // guardar para exportar CSV
+  filtradosActuales = filtrados;
+
+  // actualizar info del botón CSV
+  const csvInfo = document.getElementById('csv-info');
+  if (csvInfo) {
+    const filtrosActivos = [
+      riesgo ? 'Riesgo: ' + riesgo : '',
+      estado ? 'Estado: ' + estado : '',
+      texto  ? 'Búsqueda: "' + texto + '"' : ''
+    ].filter(Boolean);
+    csvInfo.textContent = filtrados.length + ' registro(s) seleccionado(s)' +
+      (filtrosActivos.length ? ' — Filtros: ' + filtrosActivos.join(', ') : ' — Sin filtros (todos)');
+  }
 
   const tbody = document.getElementById('tbody');
   const empty = document.getElementById('empty-state');
@@ -570,26 +586,39 @@ function renderCharts() {
   } else { document.getElementById('noEstado').style.display='block'; }
 }
 
-// ── EXPORTAR CSV ──────────────────────────────────────────
-function exportarCSV() {
-  if (!reportes.length) { alert('No hay reportes para exportar.'); return; }
+// ── EXPORTAR CSV (solo datos filtrados) ──────────────────
+// guardamos los filtrados en variable global para exportar
+let filtradosActuales = [];
+
+function exportarCSVFiltrado() {
+  if (!filtradosActuales.length) {
+    alert('No hay registros visibles para descargar. Revisa los filtros.');
+    return;
+  }
   const cols = ['ID','Fecha','Hora','Area','Tipo','Descripcion','Riesgo','Estado','Reportado_por','Lesionado','Accion'];
   const rows = [cols.join(',')];
-  reportes.forEach((r,i) => {
+  filtradosActuales.slice().reverse().forEach((r, i) => {
+    const num = filtradosActuales.length - i;
     rows.push([
-      i+1, r.Fecha, r.Hora,
-      '"'+r.Area+'"', '"'+r.Tipo+'"',
+      num, r.Fecha, r.Hora,
+      '"'+r.Area+'"',
+      '"'+r.Tipo+'"',
       '"'+(r.Descripcion||'').replace(/"/g,'""')+'"',
-      r.Riesgo, r.Estado,
+      r.Riesgo,
+      r.Estado,
       '"'+r.Reportado_por+'"',
       r.Lesionado,
       '"'+(r.Accion||'').replace(/"/g,'""')+'"'
     ].join(','));
   });
-  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const blob = new Blob([rows.join('
+')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'incidencias_agrofrutos_' + new Date().toISOString().split('T')[0] + '.csv';
+  // nombre del archivo incluye los filtros activos
+  const fR = document.getElementById('filtro-riesgo').value || 'todos';
+  const fE = document.getElementById('filtro-estado').value.replace(' ','_') || 'todos';
+  a.download = 'incidencias_' + fR + '_' + fE + '_' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
 }
 
