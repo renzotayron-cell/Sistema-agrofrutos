@@ -1,855 +1,598 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard SSOMA — Agrofrutos</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard SSOMA - Agrofrutos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+body { background:#f3f6fa; color:#1f2937; }
 
-    header { background: #1a472a; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .hl { display: flex; align-items: center; gap: 10px; }
-    .logo { width: 38px; height: 38px; background: #2d6a4f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    header h1 { font-size: 15px; font-weight: 600; }
-    header p { font-size: 11px; opacity: 0.8; }
-    .hr { display: flex; gap: 8px; align-items: center; }
-    .ubadge { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 12px; }
-    .btnH { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
+header {
+  background:#14532d;
+  color:white;
+  padding:14px 25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h1 { font-size:18px; }
+header p  { font-size:12px; opacity:0.75; }
 
-    nav { background: #2d6a4f; display: flex; padding: 0 24px; }
-    nav a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 11px 18px; font-size: 13px; border-bottom: 3px solid transparent; }
-    nav a.active, nav a:hover { color: white; border-bottom-color: #74c69d; }
+.nav { background:#1a472a; display:flex; gap:4px; padding:0 20px; }
+.nav a {
+  color:rgba(255,255,255,0.7);
+  text-decoration:none;
+  padding:10px 16px;
+  font-size:13px;
+  font-weight:600;
+  border-bottom:3px solid transparent;
+  transition:all 0.2s;
+}
+.nav a.active, .nav a:hover { color:white; border-color:#4ade80; }
 
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 24px 40px; }
-    .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    .topbar h2 { font-size: 19px; font-weight: 700; color: #1a472a; }
-    .topbar p { font-size: 12px; color: #718096; }
-    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: 'Segoe UI', sans-serif; }
-    .btn-verde { background: #1a472a; color: white; }
-    .btn-claro { background: #e8f5e9; color: #1a472a; border: 1px solid #c6f6d5; }
-    .btn-azul  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+.btn { padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; font-family:'Segoe UI',sans-serif; }
+.btn-danger  { background:#dc2626; color:white; }
+.btn-green   { background:#16a34a; color:white; }
+.btn-outline { background:white; color:#14532d; border:1.5px solid #14532d; }
+.btn-dark    { background:#14532d; color:white; }
 
-    /* Toast de notificacion */
-    .toast { position: fixed; bottom: 24px; right: 24px; background: #1a472a; color: white; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: #c53030; }
+.wrap { padding:24px 20px; max-width:1400px; margin:auto; }
 
-    .loader { display: none; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #2b6cb0; margin-bottom: 14px; align-items: center; gap: 10px; }
-    .loader.on { display: flex; }
-    .spin { width: 14px; height: 14px; border: 2px solid #bee3f8; border-top-color: #2b6cb0; border-radius: 50%; animation: sp 0.7s linear infinite; flex-shrink: 0; }
-    @keyframes sp { to { transform: rotate(360deg); } }
-    .uptxt { font-size: 11px; color: #a0aec0; margin-bottom: 14px; }
+.top-bar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.top-bar h2 { font-size:20px; color:#1a472a; }
+.top-bar-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.update-info { font-size:12px; color:#6b7280; margin-bottom:20px; }
 
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .kpi { background: white; border-radius: 12px; padding: 16px; border-left: 4px solid #2d6a4f; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .kpi .n { font-size: 28px; font-weight: 800; color: #1a472a; }
-    .kpi .l { font-size: 12px; color: #718096; margin-top: 2px; }
-    .kpi.r { border-left-color: #e53e3e; } .kpi.r .n { color: #e53e3e; }
-    .kpi.o { border-left-color: #dd6b20; } .kpi.o .n { color: #dd6b20; }
-    .kpi.b { border-left-color: #3182ce; } .kpi.b .n { color: #3182ce; }
-    .kpi.g { border-left-color: #38a169; } .kpi.g .n { color: #38a169; }
-    .kpi.y { border-left-color: #d69e2e; } .kpi.y .n { color: #d69e2e; }
-    .kpi.p { border-left-color: #805ad5; } .kpi.p .n { color: #805ad5; }
+/* KPIs */
+.kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px;
+  margin-bottom:22px;
+}
+.kpi-card {
+  background:white;
+  border-radius:14px;
+  padding:18px 20px;
+  border-left:5px solid #e5e7eb;
+  box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.kpi-card.alto   { border-color:#ef4444; }
+.kpi-card.medio  { border-color:#f59e0b; }
+.kpi-card.abierto{ border-color:#3b82f6; }
+.kpi-card.proceso{ border-color:#f59e0b; }
+.kpi-card.cerrado{ border-color:#22c55e; }
+.kpi-card.total  { border-color:#8b5cf6; }
+.kpi-icon { font-size:28px; }
+.kpi-num  { font-size:32px; font-weight:700; line-height:1; }
+.kpi-lbl  { font-size:12px; color:#6b7280; margin-top:2px; }
 
-    .row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
-    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-    .gc { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .gc h3 { font-size: 13px; font-weight: 700; color: #1a472a; margin-bottom: 2px; }
-    .gc .sub { font-size: 11px; color: #a0aec0; margin-bottom: 12px; }
-    .tabs { display: flex; gap: 5px; margin-bottom: 10px; }
-    .tab { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #4a5568; font-family: 'Segoe UI', sans-serif; }
-    .tab.on { background: #1a472a; color: white; border-color: #1a472a; }
+/* CHARTS */
+.chart-grid {
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:18px;
+  margin-bottom:20px;
+}
+.chart-grid-3 {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  margin-bottom:20px;
+}
+.box {
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.07);
+}
+.box h3 { font-size:14px; font-weight:700; color:#1a472a; margin-bottom:4px; }
+.box p.sub { font-size:12px; color:#9ca3af; margin-bottom:14px; }
+.period-btns { display:flex; gap:6px; margin-bottom:14px; }
+.period-btn {
+  padding:5px 12px;
+  border-radius:20px;
+  border:none;
+  font-size:12px;
+  cursor:pointer;
+  font-weight:600;
+  background:#f3f4f6;
+  color:#6b7280;
+  font-family:'Segoe UI',sans-serif;
+}
+.period-btn.active { background:#14532d; color:white; }
+.no-data { text-align:center; color:#9ca3af; font-size:13px; padding:40px 0; }
 
-    .filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .filtros select, .filtros input { padding: 7px 11px; border: 1.5px solid #e2e8f0; border-radius: 7px; font-size: 12px; outline: none; font-family: 'Segoe UI', sans-serif; background: white; color: #2d3748; }
+/* TABLA */
+.table-box { background:white; border-radius:14px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.07); overflow:auto; }
+.table-box h3 { font-size:14px; font-weight:700; color:#1a472a; margin-bottom:16px; }
+.table-filters { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.table-filters input, .table-filters select {
+  padding:7px 12px;
+  border:1.5px solid #e5e7eb;
+  border-radius:8px;
+  font-size:13px;
+  outline:none;
+  font-family:'Segoe UI',sans-serif;
+}
+.table-filters input:focus, .table-filters select:focus { border-color:#14532d; }
 
-    .tcard { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
-    .thead2 { padding: 14px 18px; border-bottom: 1px solid #f0f4f8; display: flex; justify-content: space-between; align-items: center; }
-    .thead2 h3 { font-size: 14px; font-weight: 700; color: #1a472a; }
-    .thead2 p { font-size: 12px; color: #a0aec0; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { background: #f7fafc; padding: 10px 14px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 10px 14px; border-bottom: 1px solid #f0f4f8; color: #2d3748; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr.clickable:hover td { background: #f0fff4; cursor: pointer; }
+table { width:100%; border-collapse:collapse; font-size:13px; min-width:800px; }
+th { background:#14532d; color:white; padding:10px 12px; text-align:left; font-weight:600; }
+td { padding:10px 12px; border-bottom:1px solid #f3f4f6; vertical-align:top; }
+tr:hover td { background:#f9fafb; }
+td.desc { max-width:220px; word-break:break-word; }
 
-    .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-    .alto    { background: #fff5f5; color: #c53030; }
-    .medio   { background: #fffaf0; color: #c05621; }
-    .bajo    { background: #f0fff4; color: #276749; }
-    .abierto { background: #ebf8ff; color: #2b6cb0; }
-    .cerrado { background: #f0fff4; color: #276749; }
-    .en-proceso { background: #fefcbf; color: #975a16; }
+.badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge.alto   { background:#fee2e2; color:#b91c1c; }
+.badge.medio  { background:#fef3c7; color:#92400e; }
+.badge.bajo   { background:#dcfce7; color:#166534; }
+.badge.abierto{ background:#dbeafe; color:#1d4ed8; }
+.badge.proceso{ background:#fef3c7; color:#92400e; }
+.badge.cerrado{ background:#dcfce7; color:#166534; }
 
-    .ac { display: flex; gap: 5px; }
-    .ba { padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; border: none; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
-    .bp { background: #fefcbf; color: #975a16; border: 1px solid #faf089; }
-    .bc { background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; }
-    .be { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+.actions { display:flex; gap:4px; flex-wrap:wrap; }
+.actions button {
+  padding:4px 8px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:600;
+  font-family:'Segoe UI',sans-serif;
+}
+.btn-proceso { background:#fef3c7; color:#92400e; }
+.btn-cerrar  { background:#dcfce7; color:#166534; }
+.btn-elim    { background:#fee2e2; color:#b91c1c; }
 
-    /* Boton deshabilitado mientras se guarda */
-    .ba:disabled { opacity: 0.5; cursor: not-allowed; }
+.empty-state { text-align:center; padding:60px 20px; color:#9ca3af; }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+.empty-state h3 { font-size:16px; color:#6b7280; margin-bottom:8px; }
+.empty-state p { font-size:13px; }
 
-    .empty { text-align: center; padding: 40px; color: #a0aec0; font-size: 14px; }
-
-    /* MODAL BASE */
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; align-items: center; justify-content: center; }
-    .modal-bg.on { display: flex; }
-    .modal { background: white; border-radius: 14px; padding: 24px; width: 90%; max-width: 400px; }
-    .modal h3 { font-size: 16px; color: #1a472a; margin-bottom: 8px; }
-    .modal p { font-size: 13px; color: #4a5568; margin-bottom: 18px; }
-    .mbts { display: flex; gap: 8px; justify-content: flex-end; }
-    .mcancel { padding: 8px 18px; border-radius: 7px; border: 1px solid #e2e8f0; background: white; font-size: 13px; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
-    .mok { padding: 8px 18px; border-radius: 7px; border: none; background: #e53e3e; color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Segoe UI', sans-serif; }
-    .mok:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    /* MODAL DETALLE */
-    .modal-det { background: white; border-radius: 14px; padding: 24px; width: 95%; max-width: 620px; max-height: 90vh; overflow-y: auto; }
-    .det-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .det-header h3 { font-size: 17px; font-weight: 700; color: #1a472a; }
-    .det-cerrar { background: none; border: none; font-size: 22px; cursor: pointer; color: #718096; line-height: 1; }
-    .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .det-campo { background: #f7fafc; border-radius: 8px; padding: 12px; }
-    .det-campo.full { grid-column: 1 / -1; }
-    .det-lbl { font-size: 10px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .det-val { font-size: 13px; font-weight: 600; color: #2d3748; line-height: 1.5; }
-    .det-val.normal { font-weight: 400; }
-    .det-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-    .det-btns .mcancel { color: #4a5568; }
-    .det-btns .btn-verde { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; }
-
-    footer { background: #1a472a; color: rgba(255,255,255,0.6); text-align: center; padding: 12px; font-size: 11px; margin-top: 24px; }
-
-    @media(max-width:800px) {
-      .row2, .row3 { grid-template-columns: 1fr; }
-      .wrap { padding: 14px; }
-      .det-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+@media(max-width:900px){
+  .chart-grid, .chart-grid-3 { grid-template-columns:1fr; }
+}
+</style>
 </head>
 <body>
 
-<!-- Toast de notificacion -->
-<div class="toast" id="toast"></div>
-
 <header>
-  <div class="hl">
-    <button class="btnH" onclick="history.back()">&#8592; Regresar</button>
-    <div class="logo">&#127807;</div>
-    <div>
-      <h1>Dashboard SSOMA</h1>
-      <p>Agrofrutos Trading S.A.</p>
-    </div>
+  <div>
+    <h1>🌿 Dashboard SSOMA</h1>
+    <p id="user-label">Agrofrutos Trading S.A.</p>
   </div>
-  <div class="hr">
-    <span class="ubadge" id="unombre">&#128737;&#65039; ...</span>
-    <button class="btnH" onclick="cerrarSesion()">Cerrar sesion</button>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button class="btn btn-danger" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </header>
 
-<nav>
+<nav class="nav">
   <a href="index.html">Inicio</a>
   <a href="reporte.html">Nuevo Reporte</a>
   <a href="dashboard.html" class="active">Dashboard</a>
-  <a href="accesos.html">Enlaces de Acceso</a>
+  <a href="qr.html">Enlaces de Acceso</a>
 </nav>
 
 <div class="wrap">
-  <div class="topbar">
+
+  <div class="top-bar">
     <div>
       <h2>Panel de Control de Incidencias</h2>
-      <p id="fechahoy"></p>
+      <p id="fecha-hoy" style="font-size:13px; color:#6b7280;"></p>
     </div>
-    <div class="btns">
-      <button class="btn btn-azul"  onclick="cargar()">&#8635; Actualizar</button>
-      <button class="btn btn-claro" onclick="exportCSV()">&#8595; CSV</button>
-      <button class="btn btn-verde" onclick="exportPDF()">&#128196; PDF Tabla</button>
-      <button class="btn btn-verde" onclick="exportGraficos()">&#128202; PDF Graficos</button>
+    <div class="top-bar-btns">
+      <button class="btn btn-outline" onclick="cargarDatos()">🔄 Actualizar</button>
+      <button class="btn btn-outline" onclick="exportarCSV()">⬇ CSV</button>
+      <button class="btn btn-dark"    onclick="window.print()">🖨 Imprimir</button>
+    </div>
+  </div>
+  <p class="update-info" id="update-info">Cargando...</p>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card alto">
+      <div class="kpi-icon">🔴</div>
+      <div><div class="kpi-num" id="kAlto">0</div><div class="kpi-lbl">Riesgo Alto</div></div>
+    </div>
+    <div class="kpi-card medio">
+      <div class="kpi-icon">🟡</div>
+      <div><div class="kpi-num" id="kMedio">0</div><div class="kpi-lbl">Riesgo Medio</div></div>
+    </div>
+    <div class="kpi-card abierto">
+      <div class="kpi-icon">🔵</div>
+      <div><div class="kpi-num" id="kAbierto">0</div><div class="kpi-lbl">Casos Abiertos</div></div>
+    </div>
+    <div class="kpi-card proceso">
+      <div class="kpi-icon">🟠</div>
+      <div><div class="kpi-num" id="kProceso">0</div><div class="kpi-lbl">En Proceso</div></div>
+    </div>
+    <div class="kpi-card cerrado">
+      <div class="kpi-icon">🟢</div>
+      <div><div class="kpi-num" id="kCerrado">0</div><div class="kpi-lbl">Cerrados</div></div>
+    </div>
+    <div class="kpi-card total">
+      <div class="kpi-icon">🟣</div>
+      <div><div class="kpi-num" id="kTotal">0</div><div class="kpi-lbl">Total Reportes</div></div>
     </div>
   </div>
 
-  <div class="loader" id="loader"><div class="spin"></div><span>Cargando datos de Google Sheets...</span></div>
-  <p class="uptxt" id="uptxt"></p>
-
-  <div class="kpis">
-    <div class="kpi r"><div class="n" id="k1">0</div><div class="l">&#128308; Riesgo Alto</div></div>
-    <div class="kpi o"><div class="n" id="k2">0</div><div class="l">&#128993; Riesgo Medio</div></div>
-    <div class="kpi b"><div class="n" id="k3">0</div><div class="l">&#128309; Casos Abiertos</div></div>
-    <div class="kpi y"><div class="n" id="k4">0</div><div class="l">&#128992; En Proceso</div></div>
-    <div class="kpi g"><div class="n" id="k5">0</div><div class="l">&#128994; Cerrados</div></div>
-    <div class="kpi p"><div class="n" id="k6">0</div><div class="l">&#128203; Total Reportes</div></div>
-  </div>
-
-  <div class="row2">
-    <div class="gc">
-      <h3>&#128200; Reportes por periodo</h3>
-      <div class="sub">Evolucion de incidencias registradas</div>
-      <div class="tabs">
-        <button class="tab on" onclick="camTab('7d',this)">7 dias</button>
-        <button class="tab" onclick="camTab('30d',this)">30 dias</button>
-        <button class="tab" onclick="camTab('mes',this)">Por mes</button>
+  <!-- GRÁFICOS FILA 1 -->
+  <div class="chart-grid">
+    <div class="box">
+      <h3>📈 Reportes por periodo</h3>
+      <p class="sub">Evolución de incidencias registradas</p>
+      <div class="period-btns">
+        <button class="period-btn active" onclick="setPeriod('7d',this)">7 días</button>
+        <button class="period-btn" onclick="setPeriod('30d',this)">30 días</button>
+        <button class="period-btn" onclick="setPeriod('mes',this)">Por mes</button>
       </div>
-      <canvas id="cLinea" height="110"></canvas>
+      <canvas id="chartLinea" height="100"></canvas>
     </div>
-    <div class="gc">
-      <h3>&#127919; Por nivel de riesgo</h3>
-      <div class="sub">Distribucion actual</div>
-      <canvas id="cDona" height="190"></canvas>
+    <div class="box">
+      <h3>🎯 Por nivel de riesgo</h3>
+      <p class="sub">Distribución actual</p>
+      <canvas id="chartRiesgo" height="180"></canvas>
     </div>
   </div>
 
-  <div class="row3">
-    <div class="gc"><h3>&#128202; Por tipo</h3><div class="sub">Tipos mas frecuentes</div><canvas id="cTipo" height="220"></canvas></div>
-    <div class="gc"><h3>&#127981; Por area</h3><div class="sub">Areas con mas reportes</div><canvas id="cArea" height="220"></canvas></div>
-    <div class="gc"><h3>&#128204; Por estado</h3><div class="sub">Resumen de gestion</div><canvas id="cEst" height="220"></canvas></div>
-  </div>
-
-  <div class="filtros">
-    <select id="fArea" onchange="filtrar()">
-      <option value="">Todas las areas</option>
-      <option>Mecanico</option><option>Mantenimiento Mecanico</option>
-      <option>Mantenimiento Electrico</option><option>Flota</option>
-      <option>Produccion CDL</option><option>Produccion AEL</option>
-      <option>Moliendo</option><option>Picado, Lavado y Exprimido</option>
-      <option>Petar</option><option>Zona Calderas</option>
-      <option>Reservorios</option><option>Oficina Administracion</option>
-      <option>Vigilancia</option><option>Patio de Maniobras</option>
-      <option>Tapic</option><option>Vestuario</option><option>Topico</option>
-      <option>Recepcion Materia Prima</option><option>Almacen General</option>
-      <option>Almacen Residuos Solidos y Peligrosos</option>
-      <option>Taller de Flota</option><option>Laboratorio</option>
-      <option>Laboratorio 2do Piso</option><option>Laboratorio Procesos</option>
-      <option>Laboratorio Petar</option><option>Servicios Higienicos</option>
-    </select>
-    <select id="fRiesgo" onchange="filtrar()">
-      <option value="">Todos los riesgos</option>
-      <option>Alto</option><option>Medio</option><option>Bajo</option>
-    </select>
-    <select id="fEstado" onchange="filtrar()">
-      <option value="">Todos los estados</option>
-      <option>Abierto</option><option>En Proceso</option><option>Cerrado</option>
-    </select>
-    <input type="date" id="fFecha" onchange="filtrar()" />
-  </div>
-
-  <div class="tcard">
-    <div class="thead2">
-      <h3>&#128203; Registro de Incidencias</h3>
-      <p id="conteo">0 reportes &mdash; clic en una fila para ver detalle</p>
+  <!-- GRÁFICOS FILA 2 -->
+  <div class="chart-grid-3">
+    <div class="box">
+      <h3>📋 Por tipo</h3>
+      <p class="sub">Tipos más frecuentes</p>
+      <canvas id="chartTipo" height="180"></canvas>
+      <div id="noTipo" class="no-data" style="display:none;">Sin datos</div>
     </div>
-    <div style="overflow-x:auto;">
+    <div class="box">
+      <h3>🏭 Por área</h3>
+      <p class="sub">Áreas con más reportes</p>
+      <canvas id="chartArea" height="180"></canvas>
+      <div id="noArea" class="no-data" style="display:none;">Sin datos</div>
+    </div>
+    <div class="box">
+      <h3>📌 Por estado</h3>
+      <p class="sub">Resumen de gestión</p>
+      <canvas id="chartEstado" height="180"></canvas>
+      <div id="noEstado" class="no-data" style="display:none;">Sin datos</div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-box">
+    <h3>📋 Registro de Incidencias</h3>
+    <div class="table-filters">
+      <input type="text" id="filtro-texto" placeholder="🔍 Buscar..." oninput="renderTabla()" style="flex:1; min-width:160px;" />
+      <select id="filtro-riesgo" onchange="renderTabla()">
+        <option value="">Todos los riesgos</option>
+        <option>Alto</option><option>Medio</option><option>Bajo</option>
+      </select>
+      <select id="filtro-estado" onchange="renderTabla()">
+        <option value="">Todos los estados</option>
+        <option>Abierto</option><option>En Proceso</option><option>Cerrado</option>
+      </select>
+    </div>
+    <div style="overflow:auto;">
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Fecha</th><th>Area</th><th>Tipo</th>
-            <th>Descripcion</th><th>Riesgo</th><th>Reportado por</th>
-            <th>Estado</th><th>Acciones</th>
+            <th>ID</th><th>Fecha</th><th>Hora</th><th>Área</th>
+            <th>Tipo</th><th>Descripción</th><th>Riesgo</th>
+            <th>Estado</th><th>Reportado por</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+      <div id="empty-state" class="empty-state" style="display:none;">
+        <div class="icon">📭</div>
+        <h3>No hay reportes registrados</h3>
+        <p>Los reportes enviados desde el formulario aparecerán aquí automáticamente.</p>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- MODAL ELIMINAR -->
-<div class="modal-bg" id="mdel">
-  <div class="modal">
-    <h3>&#9888;&#65039; Eliminar reporte</h3>
-    <p>Seguro que deseas eliminar este reporte? No se puede deshacer.</p>
-    <div class="mbts">
-      <button class="mcancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="mok" id="btnOkEliminar" onclick="okEliminar()">Si, eliminar</button>
-    </div>
-  </div>
 </div>
-
-<!-- MODAL DETALLE -->
-<div class="modal-bg" id="mdet">
-  <div class="modal-det">
-    <div class="det-header">
-      <h3 id="det-titulo">Detalle del Reporte</h3>
-      <button class="det-cerrar" onclick="cerrarDetalle()">&#10005;</button>
-    </div>
-    <div id="det-contenido"></div>
-    <div class="det-btns">
-      <button class="mcancel" onclick="cerrarDetalle()">Cerrar</button>
-      <button class="btn btn-verde" onclick="pdfDetalle()">&#128196; Descargar PDF</button>
-    </div>
-  </div>
-</div>
-
-<footer>Sistema de Gestion de Incidencias &mdash; Agrofrutos Trading S.A. &copy; 2025</footer>
 
 <script>
-// =====================================================================
-// CONFIGURACION
-// =====================================================================
-const URL_API = 'https://script.google.com/macros/s/AKfycbzDp4Ki-5Tl7s_BBHBQ-UIYJn8tkDkLtWl2uVWy6PY68e3zpxanjly2FfQY7kiRY6Gu/exec';
-
-// =====================================================================
-// SESION
-// =====================================================================
-const user = JSON.parse(sessionStorage.getItem('ssoma_user') || 'null');
-if (!user) window.location.href = 'login.html';
-document.getElementById('unombre').textContent = 'SSOMA: ' + user.nombre;
-document.getElementById('fechahoy').textContent = new Date().toLocaleDateString('es-PE', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-});
-
-// =====================================================================
-// ESTADO GLOBAL
-// =====================================================================
-let datos = [];
-let idxDel = -1;
-let detalleActual = null;
-let cL, cD, cT, cA, cE, chartsOk = false;
-
-// =====================================================================
-// TOAST NOTIFICACION
-// =====================================================================
-function toast(msg, tipo = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (tipo === 'error' ? ' error' : '');
-  setTimeout(() => { t.className = 'toast'; }, 3000);
+// ── SESIÓN ──────────────────────────────────────────────
+const usuario = JSON.parse(sessionStorage.getItem('ssoma_user') || 'null');
+if (!usuario) { window.location.href = 'login.html'; }
+else {
+  document.getElementById('user-label').textContent =
+    usuario.nombre + ' — ' + usuario.rol;
 }
 
-// =====================================================================
-// LIMPIEZA DE FECHAS Y HORAS
-// =====================================================================
-function limpiarFecha(f) {
-  const s = String(f || '');
-  if (s.includes('T')) return s.split('T')[0];
-  return s.substring(0, 10);
+// ── ESTADO ──────────────────────────────────────────────
+let reportes = [];
+let period   = '7d';
+let charts   = {};
+
+// ── FECHA ────────────────────────────────────────────────
+const hoy = new Date();
+document.getElementById('fecha-hoy').textContent =
+  hoy.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── CARGAR DESDE localStorage ────────────────────────────
+function cargarDatos() {
+  // El formulario guarda bajo la clave "reportes"
+  reportes = JSON.parse(localStorage.getItem('reportes') || '[]');
+
+  // Normalizar campos (el form usa minúsculas, el dashboard usa mayúsculas iniciales)
+  reportes = reportes.map((r, i) => ({
+    _idx  : i,
+    Fecha : r.fecha  || r.Fecha  || '',
+    Hora  : r.hora   || r.Hora   || '',
+    Area  : r.area   || r.Area   || '',
+    Tipo  : r.tipo   || r.Tipo   || '',
+    Descripcion: r.descripcion || r.Descripcion || '',
+    Riesgo: r.riesgo || r.Riesgo || '',
+    Estado: r.estado || r.Estado || 'Abierto',
+    Reportado_por: r.reportado_por || r.Reportado_por || '',
+    Lesionado: r.lesionado || r.Lesionado || '',
+    Accion: r.accion || r.Accion || '',
+  }));
+
+  const ahora = new Date();
+  document.getElementById('update-info').textContent =
+    'Actualizado: ' + ahora.toLocaleTimeString('es-PE') +
+    ' — ' + reportes.length + ' reporte(s) cargado(s)';
+
+  renderKPIs();
+  renderTabla();
+  renderCharts();
 }
 
-function limpiarHora(h) {
-  const s = String(h || '');
-  if (s.includes('T') || s.includes('1899') || s.includes('1900')) {
-    const d = new Date(s);
-    if (!isNaN(d)) {
-      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    }
-  }
-  return s.substring(0, 5);
+// ── KPIs ─────────────────────────────────────────────────
+function renderKPIs() {
+  document.getElementById('kAlto').textContent    = reportes.filter(r=>r.Riesgo==='Alto').length;
+  document.getElementById('kMedio').textContent   = reportes.filter(r=>r.Riesgo==='Medio').length;
+  document.getElementById('kAbierto').textContent = reportes.filter(r=>r.Estado==='Abierto').length;
+  document.getElementById('kProceso').textContent = reportes.filter(r=>r.Estado==='En Proceso').length;
+  document.getElementById('kCerrado').textContent = reportes.filter(r=>r.Estado==='Cerrado').length;
+  document.getElementById('kTotal').textContent   = reportes.length;
 }
 
-// =====================================================================
-// CARGA DE DATOS
-// =====================================================================
-async function cargar() {
-  document.getElementById('loader').classList.add('on');
-  try {
-    const r = await fetch(URL_API + '?nocache=' + Date.now());
-    const j = await r.json();
-    if (j.resultado === 'ok' && j.reportes) {
-      // ✅ FIX: guardamos _idx real que viene del servidor
-      datos = j.reportes.map(r => ({
-        _idx:   r['_idx'],                          // indice real 0-based de Sheets
-        fecha:  limpiarFecha(r.Fecha),
-        hora:   limpiarHora(r.Hora),
-        area:   String(r.Area || ''),
-        tipo:   String(r.Tipo || ''),
-        desc:   String(r.Descripcion || ''),
-        riesgo: String(r.Riesgo || ''),
-        quien:  String(r.Reportado_por || ''),
-        lesion: String(r.Lesionado || ''),
-        accion: String(r.Accion_inmediata || ''),
-        estado: String(r.Estado || 'Abierto')
-      }));
-      document.getElementById('uptxt').textContent =
-        'Actualizado: ' + new Date().toLocaleTimeString('es-PE') + ' — ' + datos.length + ' reportes cargados';
-    }
-  } catch (e) {
-    document.getElementById('uptxt').textContent = 'Error al conectar con el servidor.';
-    toast('Error al cargar datos. Revisa tu conexion.', 'error');
-  }
-  document.getElementById('loader').classList.remove('on');
-  actualizarKPIs();
-  filtrar();
-  if (!chartsOk) { initCharts(); chartsOk = true; }
-  else actualizarCharts();
-}
+// ── TABLA ─────────────────────────────────────────────────
+function renderTabla() {
+  const texto   = (document.getElementById('filtro-texto').value || '').toLowerCase();
+  const riesgo  = document.getElementById('filtro-riesgo').value;
+  const estado  = document.getElementById('filtro-estado').value;
 
-// =====================================================================
-// KPIs
-// =====================================================================
-function actualizarKPIs() {
-  document.getElementById('k1').textContent = datos.filter(r => r.riesgo === 'Alto').length;
-  document.getElementById('k2').textContent = datos.filter(r => r.riesgo === 'Medio').length;
-  document.getElementById('k3').textContent = datos.filter(r => r.estado === 'Abierto').length;
-  document.getElementById('k4').textContent = datos.filter(r => r.estado === 'En Proceso').length;
-  document.getElementById('k5').textContent = datos.filter(r => r.estado === 'Cerrado').length;
-  document.getElementById('k6').textContent = datos.length;
-}
-
-// =====================================================================
-// DATOS PARA GRAFICOS DE LINEA
-// =====================================================================
-function d7() {
-  const lb = [], dt = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const s = d.toISOString().split('T')[0];
-    lb.push(d.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric' }));
-    dt.push(datos.filter(r => r.fecha === s).length);
-  }
-  return { lb, dt };
-}
-
-function d30() {
-  const lb = [], dt = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const s = d.toISOString().split('T')[0];
-    lb.push(d.getDate() + '/' + (d.getMonth() + 1));
-    dt.push(datos.filter(r => r.fecha === s).length);
-  }
-  return { lb, dt };
-}
-
-function dMes() {
-  const lb = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  const dt = Array(12).fill(0);
-  datos.forEach(r => {
-    if (r.fecha) {
-      const m = parseInt(r.fecha.split('-')[1]) - 1;
-      if (m >= 0 && m < 12) dt[m]++;
-    }
+  let filtrados = reportes.filter(r => {
+    const match = !texto || JSON.stringify(r).toLowerCase().includes(texto);
+    const mR    = !riesgo || r.Riesgo === riesgo;
+    const mE    = !estado || r.Estado === estado;
+    return match && mR && mE;
   });
-  return { lb, dt };
-}
 
-// =====================================================================
-// INICIALIZAR GRAFICOS
-// =====================================================================
-function initCharts() {
-  const { lb, dt } = d7();
-  cL = new Chart(document.getElementById('cLinea'), {
-    type: 'line',
-    data: { labels: lb, datasets: [{ label: 'Reportes', data: dt, borderColor: '#1a472a', backgroundColor: 'rgba(26,71,42,0.08)', borderWidth: 2, pointBackgroundColor: '#1a472a', pointRadius: 4, tension: 0.4, fill: true }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f4f8' } }, x: { grid: { display: false } } } }
-  });
-  cD = new Chart(document.getElementById('cDona'), {
-    type: 'doughnut',
-    data: { labels: ['Alto', 'Medio', 'Bajo'], datasets: [{ data: [datos.filter(r => r.riesgo === 'Alto').length, datos.filter(r => r.riesgo === 'Medio').length, datos.filter(r => r.riesgo === 'Bajo').length], backgroundColor: ['#e53e3e', '#dd6b20', '#38a169'], borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '60%' }
-  });
-  const tipos = [...new Set(datos.map(r => r.tipo).filter(Boolean))].slice(0, 6);
-  cT = new Chart(document.getElementById('cTipo'), {
-    type: 'bar',
-    data: { labels: tipos.length ? tipos : ['Sin datos'], datasets: [{ data: tipos.length ? tipos.map(t => datos.filter(r => r.tipo === t).length) : [0], backgroundColor: '#2d6a4f', borderRadius: 5 }] },
-    options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
-  });
-  const areas = [...new Set(datos.map(r => r.area).filter(Boolean))].slice(0, 6);
-  cA = new Chart(document.getElementById('cArea'), {
-    type: 'bar',
-    data: { labels: areas.length ? areas : ['Sin datos'], datasets: [{ data: areas.length ? areas.map(a => datos.filter(r => r.area === a).length) : [0], backgroundColor: ['#1a472a', '#2d6a4f', '#40916c', '#52b788', '#74c69d', '#95d5b2'], borderRadius: 5 }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
-  });
-  cE = new Chart(document.getElementById('cEst'), {
-    type: 'pie',
-    data: { labels: ['Abierto', 'En Proceso', 'Cerrado'], datasets: [{ data: [datos.filter(r => r.estado === 'Abierto').length, datos.filter(r => r.estado === 'En Proceso').length, datos.filter(r => r.estado === 'Cerrado').length], backgroundColor: ['#3182ce', '#d69e2e', '#38a169'], borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
-  });
-}
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty-state');
 
-function actualizarCharts() {
-  const { lb, dt } = d7();
-  cL.data.labels = lb; cL.data.datasets[0].data = dt; cL.update();
-  cD.data.datasets[0].data = [datos.filter(r => r.riesgo === 'Alto').length, datos.filter(r => r.riesgo === 'Medio').length, datos.filter(r => r.riesgo === 'Bajo').length]; cD.update();
-  const tipos = [...new Set(datos.map(r => r.tipo).filter(Boolean))].slice(0, 6);
-  cT.data.labels = tipos.length ? tipos : ['Sin datos']; cT.data.datasets[0].data = tipos.length ? tipos.map(t => datos.filter(r => r.tipo === t).length) : [0]; cT.update();
-  const areas = [...new Set(datos.map(r => r.area).filter(Boolean))].slice(0, 6);
-  cA.data.labels = areas.length ? areas : ['Sin datos']; cA.data.datasets[0].data = areas.length ? areas.map(a => datos.filter(r => r.area === a).length) : [0]; cA.update();
-  cE.data.datasets[0].data = [datos.filter(r => r.estado === 'Abierto').length, datos.filter(r => r.estado === 'En Proceso').length, datos.filter(r => r.estado === 'Cerrado').length]; cE.update();
-}
-
-function camTab(t, btn) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  const d = t === '7d' ? d7() : t === '30d' ? d30() : dMes();
-  cL.data.labels = d.lb; cL.data.datasets[0].data = d.dt; cL.update();
-}
-
-// =====================================================================
-// FILTROS Y TABLA
-// =====================================================================
-function filtrar() {
-  const a  = document.getElementById('fArea').value;
-  const ri = document.getElementById('fRiesgo').value;
-  const es = document.getElementById('fEstado').value;
-  const fe = document.getElementById('fFecha').value;
-  const lista = datos.filter(r => {
-    if (a  && r.area   !== a)  return false;
-    if (ri && r.riesgo !== ri) return false;
-    if (es && r.estado !== es) return false;
-    if (fe && r.fecha  !== fe) return false;
-    return true;
-  });
-  renderTabla(lista);
-}
-
-function renderTabla(lista) {
-  document.getElementById('conteo').textContent = lista.length + ' reporte(s) — clic en una fila para ver detalle';
-  const tb = document.getElementById('tbody');
-  if (!lista.length) {
-    tb.innerHTML = '<tr><td colspan="9"><div class="empty">No hay reportes que mostrar</div></td></tr>';
+  if (!filtrados.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
     return;
   }
-  tb.innerHTML = '';
-  // Mostramos en orden inverso (mas reciente primero)
-  lista.slice().reverse().forEach(r => {
-    const i = datos.indexOf(r);
-    const num = String(i + 1).padStart(3, '0');
-    const ec = (r.estado || '').toLowerCase().replace(/ /g, '-');
-    tb.innerHTML += `<tr class="clickable" onclick="verDetalle(${i})">
-      <td><b>#${num}</b></td>
-      <td>${r.fecha}</td>
-      <td>${r.area}</td>
-      <td>${r.tipo}</td>
-      <td style="max-width:150px;">${r.desc.substring(0, 45)}${r.desc.length > 45 ? '...' : ''}</td>
-      <td><span class="badge ${r.riesgo.toLowerCase()}">${r.riesgo}</span></td>
-      <td>${r.quien}</td>
-      <td><span class="badge ${ec}">${r.estado}</span></td>
-      <td><div class="ac" onclick="event.stopPropagation()">
-        <button class="ba bp" id="btn-ep-${i}" onclick="cambiar(${i},'En Proceso',this)">En proceso</button>
-        <button class="ba bc" id="btn-ce-${i}" onclick="cambiar(${i},'Cerrado',this)">Cerrar</button>
-        <button class="ba be" onclick="abrirDel(${i})">Eliminar</button>
-      </div></td>
-    </tr>`;
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtrados.slice().reverse().map((r, i) => {
+    const num = filtrados.length - i;
+    const rC  = (r.Riesgo||'').toLowerCase();
+    const eC  = r.Estado==='Abierto' ? 'abierto' : r.Estado==='En Proceso' ? 'proceso' : 'cerrado';
+    return `
+      <tr>
+        <td>#${num}</td>
+        <td>${r.Fecha}</td>
+        <td>${r.Hora}</td>
+        <td>${r.Area}</td>
+        <td>${r.Tipo}</td>
+        <td class="desc">${r.Descripcion}</td>
+        <td><span class="badge ${rC}">${r.Riesgo}</span></td>
+        <td><span class="badge ${eC}">${r.Estado}</span></td>
+        <td>${r.Reportado_por}</td>
+        <td>
+          <div class="actions">
+            <button class="btn-proceso" onclick="cambiarEstado(${r._idx},'En Proceso')">Proceso</button>
+            <button class="btn-cerrar"  onclick="cambiarEstado(${r._idx},'Cerrado')">Cerrar</button>
+            <button class="btn-elim"    onclick="eliminar(${r._idx})">Eliminar</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── CAMBIAR ESTADO ────────────────────────────────────────
+function cambiarEstado(idx, nuevoEstado) {
+  if (!confirm('¿Cambiar estado a "' + nuevoEstado + '"?')) return;
+  const todos = JSON.parse(localStorage.getItem('reportes') || '[]');
+  if (todos[idx]) {
+    todos[idx].estado = nuevoEstado;
+    todos[idx].Estado = nuevoEstado;
+    localStorage.setItem('reportes', JSON.stringify(todos));
+    cargarDatos();
+  }
+}
+
+// ── ELIMINAR ──────────────────────────────────────────────
+function eliminar(idx) {
+  if (!confirm('¿Eliminar este reporte? Esta acción no se puede deshacer.')) return;
+  const todos = JSON.parse(localStorage.getItem('reportes') || '[]');
+  todos.splice(idx, 1);
+  localStorage.setItem('reportes', JSON.stringify(todos));
+  cargarDatos();
+}
+
+// ── GRÁFICOS ──────────────────────────────────────────────
+const COLORS_RIESGO  = ['#ef4444','#f59e0b','#22c55e'];
+const COLORS_ESTADO  = ['#3b82f6','#f59e0b','#22c55e'];
+const COLORS_MULTI   = ['#14532d','#16a34a','#4ade80','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function contarPor(campo) {
+  const map = {};
+  reportes.forEach(r => { const v = r[campo]||'Sin dato'; map[v] = (map[v]||0)+1; });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  return { labels: sorted.map(x=>x[0]), data: sorted.map(x=>x[1]) };
+}
+
+function setPeriod(p, btn) {
+  period = p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLineChart();
+}
+
+function renderLineChart() {
+  destroyChart('linea');
+  const now = new Date();
+  let labels = [], datos = [];
+
+  if (period === '7d') {
+    for (let i=6; i>=0; i--) {
+      const d = new Date(now); d.setDate(d.getDate()-i);
+      const key = d.toISOString().split('T')[0];
+      labels.push(d.toLocaleDateString('es-PE',{weekday:'short',day:'numeric'}));
+      datos.push(reportes.filter(r=>r.Fecha===key).length);
+    }
+  } else if (period === '30d') {
+    for (let i=29; i>=0; i--) {
+      const d = new Date(now); d.setDate(d.getDate()-i);
+      const key = d.toISOString().split('T')[0];
+      labels.push(i%5===0 ? d.toLocaleDateString('es-PE',{day:'numeric',month:'short'}) : '');
+      datos.push(reportes.filter(r=>r.Fecha===key).length);
+    }
+  } else {
+    for (let i=5; i>=0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const mes = d.toLocaleDateString('es-PE',{month:'short',year:'2-digit'});
+      const m   = d.getMonth()+1;
+      const y   = d.getFullYear();
+      labels.push(mes);
+      datos.push(reportes.filter(r=>{
+        if(!r.Fecha) return false;
+        const [ry,rm] = r.Fecha.split('-');
+        return parseInt(ry)===y && parseInt(rm)===m;
+      }).length);
+    }
+  }
+
+  charts['linea'] = new Chart(document.getElementById('chartLinea'), {
+    type:'line',
+    data:{ labels, datasets:[{
+      label:'Reportes',
+      data: datos,
+      borderColor:'#14532d',
+      backgroundColor:'rgba(20,83,45,0.1)',
+      fill:true,
+      tension:0.4,
+      pointBackgroundColor:'#14532d',
+      pointRadius:4,
+    }]},
+    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}} }
   });
 }
 
-// =====================================================================
-// ✅ CAMBIAR ESTADO — fetch GET con parametros en URL
-// =====================================================================
-async function cambiar(i, nuevoEstado, btnEl) {
-  const btnEp = document.getElementById('btn-ep-' + i);
-  const btnCe = document.getElementById('btn-ce-' + i);
-  if (btnEp) btnEp.disabled = true;
-  if (btnCe) btnCe.disabled = true;
+function renderCharts() {
+  renderLineChart();
 
-  // Pausamos el auto-recarga para que no pise el cambio
-  clearInterval(intervalo);
+  // Riesgo (dona)
+  destroyChart('riesgo');
+  const rA = reportes.filter(r=>r.Riesgo==='Alto').length;
+  const rM = reportes.filter(r=>r.Riesgo==='Medio').length;
+  const rB = reportes.filter(r=>r.Riesgo==='Bajo').length;
+  charts['riesgo'] = new Chart(document.getElementById('chartRiesgo'), {
+    type:'doughnut',
+    data:{ labels:['Alto','Medio','Bajo'], datasets:[{ data:[rA,rM,rB], backgroundColor:COLORS_RIESGO, borderWidth:2 }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{font:{size:12}} } } }
+  });
 
-  const idxSheet = datos[i]._idx;
-  datos[i].estado = nuevoEstado;
-  actualizarKPIs();
-  filtrar();
-  if (chartsOk) actualizarCharts();
+  // Tipo (barras horizontales)
+  destroyChart('tipo');
+  const tipo = contarPor('Tipo');
+  if (tipo.data.length) {
+    document.getElementById('noTipo').style.display = 'none';
+    charts['tipo'] = new Chart(document.getElementById('chartTipo'), {
+      type:'bar',
+      data:{ labels: tipo.labels.map(l=>l.length>20?l.substring(0,18)+'…':l),
+             datasets:[{ data:tipo.data, backgroundColor:COLORS_MULTI, borderRadius:6 }]},
+      options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}} }
+    });
+  } else { document.getElementById('noTipo').style.display='block'; }
 
-  try {
-    const url = URL_API + '?' + new URLSearchParams({
-      accion: 'actualizar_estado',
-      _idx: idxSheet,
-      estado: nuevoEstado
-    }).toString();
-    const res = await fetch(url);
-    const json = await res.json();
-    if (json.resultado === 'ok') {
-      toast('Estado actualizado a "' + nuevoEstado + '" ✓');
-    } else {
-      toast('Error del servidor: ' + (json.mensaje || 'desconocido'), 'error');
-    }
-  } catch (err) {
-    console.error('Error al actualizar estado:', err);
-    toast('Error al guardar. Recarga la pagina.', 'error');
-  }
+  // Área
+  destroyChart('area');
+  const area = contarPor('Area');
+  if (area.data.length) {
+    document.getElementById('noArea').style.display = 'none';
+    charts['area'] = new Chart(document.getElementById('chartArea'), {
+      type:'bar',
+      data:{ labels: area.labels.map(l=>l.length>16?l.substring(0,14)+'…':l),
+             datasets:[{ data:area.data, backgroundColor:COLORS_MULTI, borderRadius:6 }]},
+      options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}} }
+    });
+  } else { document.getElementById('noArea').style.display='block'; }
 
-  if (btnEp) btnEp.disabled = false;
-  if (btnCe) btnCe.disabled = false;
-
-  // Reanudamos el auto-recarga después de 5 segundos
-  setTimeout(() => {
-    intervalo = setInterval(cargar, 30000);
-  }, 5000);
-
+  // Estado (dona)
+  destroyChart('estado');
+  const eA = reportes.filter(r=>r.Estado==='Abierto').length;
+  const eP = reportes.filter(r=>r.Estado==='En Proceso').length;
+  const eC = reportes.filter(r=>r.Estado==='Cerrado').length;
+  if (eA+eP+eC > 0) {
+    document.getElementById('noEstado').style.display = 'none';
+    charts['estado'] = new Chart(document.getElementById('chartEstado'), {
+      type:'pie',
+      data:{ labels:['Abierto','En Proceso','Cerrado'], datasets:[{ data:[eA,eP,eC], backgroundColor:COLORS_ESTADO, borderWidth:2 }]},
+      options:{ plugins:{ legend:{ position:'bottom', labels:{font:{size:12}} } } }
+    });
+  } else { document.getElementById('noEstado').style.display='block'; }
 }
 
-// =====================================================================
-// ELIMINAR
-// =====================================================================
-function abrirDel(i) {
-  idxDel = i;
-  document.getElementById('mdel').classList.add('on');
-}
-
-function cerrarModal() {
-  document.getElementById('mdel').classList.remove('on');
-  idxDel = -1;
-}
-
-// ✅ ELIMINAR — fetch GET con parametros en URL
-async function okEliminar() {
-  if (idxDel < 0) return;
-
-  const btn = document.getElementById('btnOkEliminar');
-  btn.disabled = true;
-  btn.textContent = 'Eliminando...';
-
-  const idxSheet = datos[idxDel]._idx; // guardamos _idx ANTES del splice
-  datos.splice(idxDel, 1);
-  actualizarKPIs();
-  filtrar();
-  if (chartsOk) actualizarCharts();
-  cerrarModal();
-
-  try {
-    const url = URL_API + '?' + new URLSearchParams({
-      accion: 'eliminar',
-      _idx: idxSheet
-    }).toString();
-    const res = await fetch(url);
-    const json = await res.json();
-    if (json.resultado === 'ok') {
-      toast('Reporte eliminado correctamente ✓');
-    } else {
-      toast('Error del servidor: ' + (json.mensaje || 'desconocido'), 'error');
-    }
-  } catch (err) {
-    console.error('Error al eliminar:', err);
-    toast('Error al eliminar. Recarga la pagina.', 'error');
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Si, eliminar';
-}
-
-// =====================================================================
-// DETALLE
-// =====================================================================
-function verDetalle(i) {
-  detalleActual = datos[i];
-  const r = detalleActual;
-  const num = String(i + 1).padStart(3, '0');
-  document.getElementById('det-titulo').textContent = 'Reporte #' + num + ' — ' + r.area;
-  const ec = (r.estado || '').toLowerCase().replace(/ /g, '-');
-  document.getElementById('det-contenido').innerHTML = `
-    <div class="det-grid">
-      <div class="det-campo"><div class="det-lbl">Fecha</div><div class="det-val">${r.fecha}</div></div>
-      <div class="det-campo"><div class="det-lbl">Hora</div><div class="det-val">${r.hora || 'No registrada'}</div></div>
-      <div class="det-campo"><div class="det-lbl">Area</div><div class="det-val">${r.area}</div></div>
-      <div class="det-campo"><div class="det-lbl">Tipo de incidencia</div><div class="det-val">${r.tipo}</div></div>
-      <div class="det-campo"><div class="det-lbl">Nivel de riesgo</div><div class="det-val"><span class="badge ${r.riesgo.toLowerCase()}" style="font-size:12px;">${r.riesgo}</span></div></div>
-      <div class="det-campo"><div class="det-lbl">Estado actual</div><div class="det-val"><span class="badge ${ec}" style="font-size:12px;">${r.estado}</span></div></div>
-      <div class="det-campo"><div class="det-lbl">Reportado por</div><div class="det-val">${r.quien}</div></div>
-      <div class="det-campo"><div class="det-lbl">Persona lesionada</div><div class="det-val">${r.lesion || 'No'}</div></div>
-      <div class="det-campo full"><div class="det-lbl">Descripcion detallada</div><div class="det-val normal">${r.desc || 'Sin descripcion'}</div></div>
-      <div class="det-campo full"><div class="det-lbl">Accion inmediata tomada</div><div class="det-val normal">${r.accion || 'No registrada'}</div></div>
-    </div>`;
-  document.getElementById('mdet').classList.add('on');
-}
-
-function cerrarDetalle() {
-  document.getElementById('mdet').classList.remove('on');
-  detalleActual = null;
-}
-
-// =====================================================================
-// PDF DETALLE
-// =====================================================================
-function pdfDetalle() {
-  if (!detalleActual) return;
-  const r = detalleActual;
-  const w = window.open('', '_blank');
-  const fechaHoy = new Date().toLocaleDateString('es-PE');
-  const idx = datos.indexOf(r);
-  const num = String(idx + 1).padStart(3, '0');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Reporte #${num} — Agrofrutos</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:30px;font-size:11px;color:#1a202c;}
-      .btnreg{background:#1a472a;color:white;border:none;padding:8px 18px;border-radius:7px;font-size:11px;cursor:pointer;margin-bottom:18px;display:inline-block;}
-      .header{border-bottom:2px solid #1a472a;padding-bottom:12px;margin-bottom:18px;}
-      .header h1{color:#1a472a;font-size:17px;margin:0 0 3px;}
-      .header p{color:#718096;font-size:10px;margin:0;}
-      .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;}
-      .alto{background:#fff5f5;color:#c53030;} .medio{background:#fffaf0;color:#c05621;} .bajo{background:#f0fff4;color:#276749;}
-      .abierto{background:#ebf8ff;color:#2b6cb0;} .cerrado{background:#f0fff4;color:#276749;} .en-proceso{background:#fefcbf;color:#975a16;}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-      .campo{background:#f7fafc;border-radius:6px;padding:10px 12px;border-left:3px solid #1a472a;}
-      .campo.full{grid-column:1/-1;}
-      .lbl{font-size:8px;color:#a0aec0;text-transform:uppercase;margin-bottom:3px;letter-spacing:0.05em;}
-      .val{font-weight:700;font-size:11px;color:#2d3748;}
-      .val.normal{font-weight:400;line-height:1.6;}
-      .ft{margin-top:20px;font-size:9px;color:#a0aec0;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;}
-      @media print{.btnreg{display:none;}}
-    </style>
-  </head><body>
-    <button class="btnreg" onclick="window.close()">&#8592; Regresar al Dashboard</button>
-    <div class="header">
-      <h1>Reporte de Incidencia #${num} — Agrofrutos Trading S.A.</h1>
-      <p>Generado por: ${user.nombre} &nbsp;|&nbsp; Fecha de impresion: ${fechaHoy}</p>
-    </div>
-    <div class="grid">
-      <div class="campo"><div class="lbl">Fecha</div><div class="val">${r.fecha}</div></div>
-      <div class="campo"><div class="lbl">Hora</div><div class="val">${r.hora || 'No registrada'}</div></div>
-      <div class="campo"><div class="lbl">Area</div><div class="val">${r.area}</div></div>
-      <div class="campo"><div class="lbl">Tipo de incidencia</div><div class="val">${r.tipo}</div></div>
-      <div class="campo"><div class="lbl">Nivel de riesgo</div><div class="val"><span class="badge ${r.riesgo.toLowerCase()}">${r.riesgo}</span></div></div>
-      <div class="campo"><div class="lbl">Estado</div><div class="val"><span class="badge ${(r.estado || '').toLowerCase().replace(/ /g, '-')}">${r.estado}</span></div></div>
-      <div class="campo"><div class="lbl">Reportado por</div><div class="val">${r.quien}</div></div>
-      <div class="campo"><div class="lbl">Persona lesionada</div><div class="val">${r.lesion || 'No'}</div></div>
-      <div class="campo full"><div class="lbl">Descripcion detallada</div><div class="val normal">${r.desc || 'Sin descripcion'}</div></div>
-      <div class="campo full"><div class="lbl">Accion inmediata tomada</div><div class="val normal">${r.accion || 'No registrada'}</div></div>
-    </div>
-    <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
-  </body></html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 800);
-}
-
-// =====================================================================
-// EXPORTAR CSV
-// =====================================================================
-function exportCSV() {
-  if (!datos.length) { alert('No hay datos para exportar'); return; }
-  const h = ['ID', 'Fecha', 'Hora', 'Area', 'Tipo', 'Descripcion', 'Riesgo', 'Reportado_por', 'Lesionado', 'Accion', 'Estado'];
-  const rows = datos.map((r, i) => [
-    '#' + String(i + 1).padStart(3, '0'), r.fecha, r.hora, r.area, r.tipo,
-    '"' + r.desc.replace(/"/g, "'") + '"', r.riesgo, r.quien, r.lesion, r.accion, r.estado
-  ]);
-  const csv = [h, ...rows].map(r => r.join(',')).join('\n');
+// ── EXPORTAR CSV ──────────────────────────────────────────
+function exportarCSV() {
+  if (!reportes.length) { alert('No hay reportes para exportar.'); return; }
+  const cols = ['ID','Fecha','Hora','Area','Tipo','Descripcion','Riesgo','Estado','Reportado_por','Lesionado','Accion'];
+  const rows = [cols.join(',')];
+  reportes.forEach((r,i) => {
+    rows.push([
+      i+1, r.Fecha, r.Hora,
+      '"'+r.Area+'"', '"'+r.Tipo+'"',
+      '"'+(r.Descripcion||'').replace(/"/g,'""')+'"',
+      r.Riesgo, r.Estado,
+      '"'+r.Reportado_por+'"',
+      r.Lesionado,
+      '"'+(r.Accion||'').replace(/"/g,'""')+'"'
+    ].join(','));
+  });
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
-  a.download = 'reportes-agrofrutos-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.href = URL.createObjectURL(blob);
+  a.download = 'incidencias_agrofrutos_' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
 }
 
-// =====================================================================
-// EXPORTAR PDF GRAFICOS
-// =====================================================================
-async function exportGraficos() {
-  const w = window.open('', '_blank');
-  const fechaHoy = new Date().toLocaleDateString('es-PE');
-  const graficos = [
-    { id: 'cLinea', titulo: 'Reportes por Periodo' },
-    { id: 'cDona',  titulo: 'Por Nivel de Riesgo'  },
-    { id: 'cTipo',  titulo: 'Por Tipo de Incidencia'},
-    { id: 'cArea',  titulo: 'Por Area'              },
-    { id: 'cEst',   titulo: 'Por Estado'            }
-  ];
-  let imagenes = '';
-  for (const g of graficos) {
-    const canvas = document.getElementById(g.id);
-    const img = canvas.toDataURL('image/png');
-    imagenes += `<div class="grafico-wrap"><h3>${g.titulo}</h3><img src="${img}" /></div>`;
-  }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Graficos SSOMA — Agrofrutos</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:24px;font-size:11px;color:#1a202c;}
-      .btnreg{background:#1a472a;color:white;border:none;padding:7px 16px;border-radius:6px;font-size:10px;cursor:pointer;margin-bottom:16px;}
-      .header{border-bottom:2px solid #1a472a;padding-bottom:10px;margin-bottom:20px;}
-      .header h1{color:#1a472a;font-size:16px;margin:0 0 3px;}
-      .header p{color:#718096;font-size:10px;margin:0;}
-      .graficos{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:0 auto;}
-      .grafico-wrap{background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e2e8f0;}
-      .grafico-wrap h3{font-size:12px;color:#1a472a;margin-bottom:10px;}
-      .grafico-wrap img{width:100%;max-height:200px;object-fit:contain;border-radius:4px;}
-      .stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-      .s{border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 12px;text-align:center;min-width:80px;}
-      .s .n{font-size:18px;font-weight:800;color:#1a472a;}
-      .s .l{font-size:9px;color:#718096;}
-      .ft{margin-top:20px;font-size:9px;color:#a0aec0;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;}
-      @media print{.btnreg{display:none;} body{padding:10px;}}
-    </style>
-  </head><body>
-    <button class="btnreg" onclick="window.close()">&#8592; Regresar al Dashboard</button>
-    <div class="header">
-      <h1>Graficos de Incidencias — Agrofrutos Trading S.A.</h1>
-      <p>Generado por: ${user.nombre} &nbsp;|&nbsp; Fecha: ${fechaHoy} &nbsp;|&nbsp; Total reportes: ${datos.length}</p>
-    </div>
-    <div class="stats">
-      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r => r.riesgo === 'Alto').length}</div><div class="l">Alto</div></div>
-      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r => r.riesgo === 'Medio').length}</div><div class="l">Medio</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.riesgo === 'Bajo').length}</div><div class="l">Bajo</div></div>
-      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r => r.estado === 'Abierto').length}</div><div class="l">Abiertos</div></div>
-      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r => r.estado === 'En Proceso').length}</div><div class="l">En Proceso</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.estado === 'Cerrado').length}</div><div class="l">Cerrados</div></div>
-      <div class="s"><div class="n">${datos.length}</div><div class="l">Total</div></div>
-    </div>
-    <div class="graficos">${imagenes}</div>
-    <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
-  </body></html>`);
-  w.document.close();
-  setTimeout(() => { w.document.body.style.zoom = '0.75'; w.print(); }, 800);
-}
-
-// =====================================================================
-// EXPORTAR PDF TABLA
-// =====================================================================
-function exportPDF() {
-  if (!datos.length) { alert('No hay datos para exportar'); return; }
-  const w = window.open('', '_blank');
-  const fechaHoy = new Date().toLocaleDateString('es-PE');
-  const filas = datos.map((r, i) => `
-    <tr>
-      <td>#${String(i + 1).padStart(3, '0')}</td>
-      <td>${r.fecha}</td><td>${r.hora}</td><td>${r.area}</td>
-      <td>${r.tipo}</td><td>${r.desc}</td><td>${r.riesgo}</td>
-      <td>${r.quien}</td><td>${r.lesion}</td><td>${r.estado}</td>
-    </tr>`).join('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Reportes SSOMA — Agrofrutos</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:20px;font-size:10px;}
-      .btnreg{background:#1a472a;color:white;border:none;padding:7px 16px;border-radius:6px;font-size:10px;cursor:pointer;margin-bottom:14px;}
-      h1{color:#1a472a;font-size:15px;margin-bottom:3px;}
-      h2{color:#718096;font-size:11px;font-weight:normal;margin-bottom:14px;}
-      .stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-      .s{border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 12px;text-align:center;}
-      .s .n{font-size:18px;font-weight:800;color:#1a472a;}
-      .s .l{font-size:9px;color:#718096;}
-      table{width:100%;border-collapse:collapse;}
-      th{background:#1a472a;color:white;padding:6px 7px;text-align:left;font-size:9px;}
-      td{padding:5px 7px;border-bottom:1px solid #e2e8f0;font-size:9px;}
-      tr:nth-child(even) td{background:#f7fafc;}
-      .ft{margin-top:16px;font-size:9px;color:#a0aec0;text-align:center;}
-      @media print{.btnreg{display:none;}}
-    </style>
-  </head><body>
-    <button class="btnreg" onclick="window.close()">&#8592; Regresar al Dashboard</button>
-    <h1>Reporte General de Incidencias — Agrofrutos Trading S.A.</h1>
-    <h2>Generado por: ${user.nombre} | Fecha: ${fechaHoy} | Total: ${datos.length} reportes</h2>
-    <div class="stats">
-      <div class="s"><div class="n" style="color:#e53e3e">${datos.filter(r => r.riesgo === 'Alto').length}</div><div class="l">Alto</div></div>
-      <div class="s"><div class="n" style="color:#dd6b20">${datos.filter(r => r.riesgo === 'Medio').length}</div><div class="l">Medio</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.riesgo === 'Bajo').length}</div><div class="l">Bajo</div></div>
-      <div class="s"><div class="n" style="color:#3182ce">${datos.filter(r => r.estado === 'Abierto').length}</div><div class="l">Abiertos</div></div>
-      <div class="s"><div class="n" style="color:#d69e2e">${datos.filter(r => r.estado === 'En Proceso').length}</div><div class="l">En Proceso</div></div>
-      <div class="s"><div class="n" style="color:#38a169">${datos.filter(r => r.estado === 'Cerrado').length}</div><div class="l">Cerrados</div></div>
-      <div class="s"><div class="n">${datos.length}</div><div class="l">Total</div></div>
-    </div>
-    <table>
-      <thead><tr><th>ID</th><th>Fecha</th><th>Hora</th><th>Area</th><th>Tipo</th><th>Descripcion</th><th>Riesgo</th><th>Reportado por</th><th>Lesionado</th><th>Estado</th></tr></thead>
-      <tbody>${filas}</tbody>
-    </table>
-    <div class="ft">Sistema de Gestion de Incidencias — Agrofrutos Trading S.A. &copy; 2025 | ${fechaHoy}</div>
-  </body></html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 800);
-}
-
-// =====================================================================
-// SESION
-// =====================================================================
+// ── CERRAR SESIÓN ─────────────────────────────────────────
 function cerrarSesion() {
   sessionStorage.removeItem('ssoma_user');
   window.location.href = 'login.html';
 }
 
-// =====================================================================
-// INICIO
-// =====================================================================
-cargar();
-let intervalo = setInterval(cargar, 30000);
+// ── INICIO ────────────────────────────────────────────────
+cargarDatos();
+setInterval(cargarDatos, 30000); // actualiza cada 30s
 </script>
+
 </body>
 </html>
