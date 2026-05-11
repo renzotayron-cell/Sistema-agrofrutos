@@ -324,25 +324,27 @@ const hoy = new Date();
 document.getElementById('fecha-hoy').textContent =
   hoy.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
+// ── NORMALIZAR un reporte crudo ───────────────────────────
+function normalizar(r, i) {
+  return {
+    _idx         : i,
+    Fecha        : r.fecha        || r.Fecha        || '',
+    Hora         : r.hora         || r.Hora         || '',
+    Area         : r.area         || r.Area         || '',
+    Tipo         : r.tipo         || r.Tipo         || '',
+    Descripcion  : r.descripcion  || r.Descripcion  || '',
+    Riesgo       : r.riesgo       || r.Riesgo       || '',
+    Estado       : r.estado       || r.Estado       || 'Abierto',
+    Reportado_por: r.reportado_por|| r.Reportado_por|| '',
+    Lesionado    : r.lesionado    || r.Lesionado    || '',
+    Accion       : r.accion       || r.Accion       || '',
+  };
+}
+
 // ── CARGAR DESDE localStorage ────────────────────────────
 function cargarDatos() {
-  // El formulario guarda bajo la clave "reportes"
-  reportes = JSON.parse(localStorage.getItem('reportes') || '[]');
-
-  // Normalizar campos (el form usa minúsculas, el dashboard usa mayúsculas iniciales)
-  reportes = reportes.map((r, i) => ({
-    _idx  : i,
-    Fecha : r.fecha  || r.Fecha  || '',
-    Hora  : r.hora   || r.Hora   || '',
-    Area  : r.area   || r.Area   || '',
-    Tipo  : r.tipo   || r.Tipo   || '',
-    Descripcion: r.descripcion || r.Descripcion || '',
-    Riesgo: r.riesgo || r.Riesgo || '',
-    Estado: r.estado || r.Estado || 'Abierto',
-    Reportado_por: r.reportado_por || r.Reportado_por || '',
-    Lesionado: r.lesionado || r.Lesionado || '',
-    Accion: r.accion || r.Accion || '',
-  }));
+  const raw = JSON.parse(localStorage.getItem('reportes') || '[]');
+  reportes  = raw.map(normalizar);
 
   const ahora = new Date();
   document.getElementById('update-info').textContent =
@@ -353,6 +355,12 @@ function cargarDatos() {
   renderTabla();
   renderCharts();
 }
+
+// ── DETECTAR CAMBIOS DESDE OTRA PESTAÑA (formulario) ─────
+window.addEventListener('storage', e => {
+  if (e.key === 'reportes') cargarDatos();
+});
+
 
 // ── KPIs ─────────────────────────────────────────────────
 function renderKPIs() {
@@ -418,6 +426,7 @@ function cambiarEstado(idx, nuevoEstado) {
   if (!confirm('¿Cambiar estado a "' + nuevoEstado + '"?')) return;
   const todos = JSON.parse(localStorage.getItem('reportes') || '[]');
   if (todos[idx]) {
+    // guardar en ambos formatos para compatibilidad total
     todos[idx].estado = nuevoEstado;
     todos[idx].Estado = nuevoEstado;
     localStorage.setItem('reportes', JSON.stringify(todos));
@@ -433,6 +442,7 @@ function eliminar(idx) {
   localStorage.setItem('reportes', JSON.stringify(todos));
   cargarDatos();
 }
+
 
 // ── GRÁFICOS ──────────────────────────────────────────────
 const COLORS_RIESGO  = ['#ef4444','#f59e0b','#22c55e'];
